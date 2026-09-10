@@ -1,0 +1,13 @@
+{{ if .Values.storageClass.create }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.postgres.persistence.storageClassName | quote }}
+  annotations:
+    helm.sh/resource-policy: keep
+provisioner: {{ .Values.storageClass.provisioner | quote }}
+parameters: {{ .Values.storageClass.parameters | toJson }}
+reclaimPolicy: {{ .Values.storageClass.reclaimPolicy }}
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+{{ end }}

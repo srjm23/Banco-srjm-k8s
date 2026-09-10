@@ -1,0 +1,17 @@
+{{ if .Values.certManager.enabled }}
+{{ if not .Values.knative.enabled }}
+{{ fail "certManager.enabled neste chart requer knative.enabled=true" }}
+{{ end }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: banco-srjm
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName: {{ .Values.certManager.secretName | quote }}
+  dnsNames:
+    - {{ .Values.istio.host | quote }}
+  issuerRef: {{ .Values.certManager.issuerRef | toJson }}
+  privateKey:
+    rotationPolicy: Always
+{{ end }}

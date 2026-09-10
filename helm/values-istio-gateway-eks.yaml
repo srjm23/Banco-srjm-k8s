@@ -1,0 +1,7 @@
+service:
+  type: ClusterIP
+  loadBalancerClass: ''
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-scheme: null
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: null
+    service.beta.kubernetes.io/aws-load-balancer-subnets: null

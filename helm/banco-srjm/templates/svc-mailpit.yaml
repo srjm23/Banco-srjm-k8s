@@ -1,0 +1,21 @@
+{{ if .Values.mailpit.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: mailpit
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    app: mailpit
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+  - name: tcp-smtp
+    port: 1025
+    targetPort: tcp-smtp
+  - name: http
+    port: 8025
+    targetPort: http
+{{ end }}

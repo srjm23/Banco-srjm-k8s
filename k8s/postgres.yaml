@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: banco-srjm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+      annotations:
+        sidecar.istio.io/inject: 'false'
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: postgres
+        image: srjm2024/banco-srjm-postgres:latest
+        imagePullPolicy: Always
+        ports:
+        - name: tcp-postgres
+          containerPort: 5432
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: '1'
+            memory: 1Gi
+        envFrom:
+        - configMapRef:
+            name: postgres-config
+        - secretRef:
+            name: postgres-secret
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        startupProbe:
+          exec: &id001
+            command:
+            - sh
+            - -c
+            - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          exec: *id001
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+  serviceName: postgres-headless
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: banco-ebs-gp3
+      resources:
+        requests:
+          storage: 20Gi

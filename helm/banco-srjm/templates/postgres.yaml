@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: postgres
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        sidecar.istio.io/inject: 'false'
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: postgres
+        image: {{ printf "%s:%s" .Values.postgres.image.repository .Values.postgres.image.tag | quote }}
+        imagePullPolicy: {{ .Values.postgres.image.pullPolicy }}
+        ports:
+        - name: tcp-postgres
+          containerPort: 5432
+        resources: {{ .Values.postgres.resources | toJson }}
+        envFrom:
+        - configMapRef:
+            name: postgres-config
+        - secretRef:
+            name: {{ .Values.secrets.postgresName | quote }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        startupProbe:
+          exec: &id001
+            command:
+            - sh
+            - -c
+            - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          exec: *id001
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+      imagePullSecrets: {{ .Values.imagePullSecrets | toJson }}
+  serviceName: postgres-headless
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: {{ .Values.postgres.persistence.storageClassName | quote }}
+      resources:
+        requests:
+          storage: {{ .Values.postgres.persistence.size | quote }}

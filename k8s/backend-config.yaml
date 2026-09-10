@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: banco-srjm
+data:
+  MAIL_HOST: mailpit
+  MAIL_PORT: '1025'
+  MAIL_FROM: noreply@bancosrjm.local
+  MAIL_SMTP_AUTH: 'false'
+  MAIL_STARTTLS: 'false'
+  FRONTEND_URL: https://bancosrjm.geradorqrcode-srjm.uk/
+  SPRING_PROFILES_ACTIVE: ''
+  OTEL_SERVICE_NAME: banco-srjm-api
+  OTEL_TRACES_SAMPLER_PROBABILITY: '1.0'
+  OTEL_TRACES_EXPORTER: none
+  OTEL_METRICS_EXPORTER: none
+  OTEL_LOGS_EXPORTER: none
+  SPRING_CONFIG_ADDITIONAL_LOCATION: file:/etc/banco/application.yaml
+  SERVER_FORWARD_HEADERS_STRATEGY: framework
+  MANAGEMENT_TRACING_ENABLED: 'false'

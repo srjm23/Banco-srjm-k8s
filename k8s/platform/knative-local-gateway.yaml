@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: knative-local-gateway
+  namespace: istio-ingress
+  labels:
+    experimental.istio.io/disable-gateway-port-translation: 'true'
+spec:
+  type: ClusterIP
+  selector:
+    app: istio-ingress
+    istio: ingress
+  ports:
+  - name: http2
+    port: 80
+    targetPort: 8081
+  - name: https
+    port: 443
+    targetPort: 8444

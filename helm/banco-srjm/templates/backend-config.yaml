@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: {{ .Release.Namespace }}
+data:
+  FRONTEND_URL: {{ default (printf "https://%s/" .Values.istio.host) .Values.backend.frontendUrl | quote }}
+  {{- range $key, $value := .Values.backend.config }}
+  {{ $key }}: {{ $value | toString | quote }}
+  {{- end }}

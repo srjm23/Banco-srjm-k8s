@@ -1,0 +1,21 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-production
+spec:
+  acme:
+    email: srjm99silva@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-production-account-key
+    solvers:
+    - selector:
+        dnsNames:
+        - bancosrjm.geradorqrcode-srjm.uk
+        - '*.geradorqrcode-srjm.uk'
+      dns01:
+        cloudflare:
+          email: srjm99silva@gmail.com
+          apiTokenSecretRef:
+            name: cloudflare-api-token-secret
+            key: api-token

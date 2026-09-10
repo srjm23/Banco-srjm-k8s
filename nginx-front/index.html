@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101828">
+    <title>Banco SRJM | Painel digital</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+    <section class="landing-page" id="landing-page">
+        <div class="landing-glow landing-glow-one"></div>
+        <div class="landing-glow landing-glow-two"></div>
+        <header class="landing-header">
+            <div class="landing-brand" aria-label="Banco SRJM">
+                <span class="landing-monogram" aria-hidden="true"><i>B</i><i>S</i></span>
+                <strong>Banco SRJM</strong>
+            </div>
+            <button class="landing-client-button" id="login-trigger" type="button">
+                <span class="client-icon" aria-hidden="true">♙</span>
+                Já sou cliente
+                <b aria-hidden="true">›</b>
+            </button>
+        </header>
+
+        <div class="landing-hero">
+            <div class="landing-content">
+                <p class="landing-eyebrow">Banco digital SRJM</p>
+                <h1>Seu dinheiro<br><span>no ritmo</span> da sua vida</h1>
+                <p class="landing-subtitle">Uma conta simples, segura e feita para acompanhar você.</p>
+                <div class="landing-actions">
+                    <button class="landing-open-button new-account-trigger" type="button">Abrir minha conta <span aria-hidden="true">→</span></button>
+                </div>
+            </div>
+
+            <div class="landing-visual" aria-hidden="true">
+                <div class="visual-orbit orbit-one"></div>
+                <div class="visual-orbit orbit-two"></div>
+                <div class="security-shield"><span>▣</span></div>
+                <div class="app-preview">
+                    <div class="preview-top"><span>Conta Corrente</span><b>◉</b></div>
+                    <small>Saldo disponível</small>
+                    <strong>R$ 7.842,50</strong>
+                    <span class="preview-extract">Ver extrato&nbsp; →</span>
+                    <div class="preview-actions">
+                        <span><i>↔</i><small>Pix</small></span>
+                        <span><i>▥</i><small>Pagar</small></span>
+                        <span><i>＋</i><small>Transferir</small></span>
+                    </div>
+                    <div class="preview-list">
+                        <b>Últimas movimentações</b>
+                        <span><i class="preview-pix">↗</i><em>Pix recebido<small>Hoje, 09:41</small></em><strong>+ R$ 1.250,00</strong></span>
+                        <span><i>▣</i><em>Supermercado<small>Hoje, 08:23</small></em><strong>− R$ 189,90</strong></span>
+                    </div>
+                </div>
+                <div class="bank-card-preview">
+                    <div class="card-chip-row">
+                        <span class="card-chip"><i></i></span>
+                        <span class="contactless" aria-label="Pagamento por aproximação"><i></i><i></i><i></i></span>
+                    </div>
+                    <span class="card-brand-monogram"><i>B</i><i>S</i></span>
+                    <div class="card-customer">
+                        <span>Nome do cliente</span>
+                        <strong>JOAO M S BESERRA</strong>
+                    </div>
+                    <div class="card-validity"><span>VALIDADE</span><strong>12/30</strong></div>
+                    <div class="card-circles"><i></i><i></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="landing-waves" aria-hidden="true"></div>
+    </section>
+
+    <div class="app-shell hidden" id="authenticated-app">
+        <aside class="sidebar">
+            <a class="brand" href="/" aria-label="Banco SRJM">
+                <span class="landing-monogram app-brand-monogram" aria-hidden="true"><i>B</i><i>S</i></span>
+                <span>
+                    <strong>Banco SRJM</strong>
+                    <small>Conta digital</small>
+                </span>
+            </a>
+
+            <nav class="nav-menu" aria-label="Navegação principal">
+                <a class="nav-item active customer-navigation" data-customer-view="overview" href="#dashboard">
+                    <span class="nav-icon">⌂</span>
+                    Visão geral
+                </a>
+                <a class="nav-item customer-navigation" data-customer-view="operations" href="#operations">
+                    <span class="nav-icon">↗</span>
+                    Movimentações
+                </a>
+                <a class="nav-item customer-navigation" data-customer-view="recent" href="#statement">
+                    <span class="nav-icon">≡</span>
+                    Últimas transações
+                </a>
+                <a class="nav-item customer-navigation" data-customer-view="statement" href="#statement">
+                    <span class="nav-icon">▤</span>
+                    Extrato bancário
+                </a>
+                <a class="nav-item hidden" id="admin-nav-item" href="#admin">
+                    <span class="nav-icon">⚙</span>
+                    Administrador
+                </a>
+            </nav>
+
+            <div class="sidebar-note">
+                <span class="status-dot"></span>
+                <div>
+                    <strong>Ambiente seguro</strong>
+                    <small>Dados protegidos por transação</small>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content" id="dashboard">
+            <header class="topbar">
+                <div class="mobile-brand">
+                    <span class="landing-monogram app-brand-monogram" aria-hidden="true"><i>B</i><i>S</i></span>
+                    <strong>Banco SRJM</strong>
+                </div>
+
+                <div class="account-switcher">
+                    <button class="button button-logout" id="logout-button" type="button"><span aria-hidden="true">↪</span> Sair</button>
+                </div>
+            </header>
+
+            <section class="welcome-row customer-dashboard-section" data-customer-section="overview">
+                <div>
+                    <p class="eyebrow welcome-eyebrow"><span></span> Sua conta digital</p>
+                    <h1>Seu dinheiro, <span>no ritmo</span> da sua vida.</h1>
+                    <p class="subtle">Tudo o que você precisa para movimentar, acompanhar e cuidar do seu dinheiro.</p>
+                </div>
+                <div class="date-chip" id="today-date">27 de agosto de 2026</div>
+            </section>
+
+            <section class="hero-grid customer-dashboard-section" data-customer-section="overview" aria-label="Resumo da conta">
+                <article class="balance-card">
+                    <div class="balance-card-top">
+                        <span class="card-label">Conta corrente</span>
+                        <span class="visibility-icon" aria-hidden="true">◉</span>
+                    </div>
+                    <span class="balance-caption">Saldo disponível</span>
+                    <strong class="balance-value" id="account-balance">R$ 0,00</strong>
+                    <button class="balance-statement-button" data-open-customer-view="statement" type="button">Ver extrato <span>→</span></button>
+                    <div class="balance-quick-actions">
+                        <button data-action="pix" type="button"><i>↔</i><span>Pix</span></button>
+                        <button data-action="payment" type="button"><i>▥</i><span>Pagar</span></button>
+                        <button data-action="deposit" type="button"><i>＋</i><span>Depositar</span></button>
+                    </div>
+                    <div class="balance-recent">
+                        <button class="balance-recent-title" data-open-customer-view="recent" type="button">Últimas movimentações <span>Ver top 3 →</span></button>
+                        <div id="balance-recent-list"><p>Nenhuma movimentação recente.</p></div>
+                    </div>
+                    <div class="balance-card-footer">
+                        <div>
+                            <span class="account-holder" id="account-holder">Nenhum cliente autenticado</span>
+                            <small id="account-display-reference">Faça login para acessar sua conta</small>
+                        </div>
+                        <span class="status-pill neutral" id="account-status">Sem conta</span>
+                    </div>
+                    <div class="card-orb orb-one"></div>
+                    <div class="card-orb orb-two"></div>
+                </article>
+
+                <article class="info-card">
+                    <div class="info-card-title">
+                        <div>
+                            <span class="eyebrow">Conta digital</span>
+                            <h2>Detalhes da conta</h2>
+                        </div>
+                        <span class="info-icon">⌁</span>
+                    </div>
+                    <dl class="account-details">
+                        <div>
+                            <dt>Número</dt>
+                            <dd id="account-number">—</dd>
+                        </div>
+                        <div>
+                            <dt>Dígito verificador</dt>
+                            <dd id="account-digit">—</dd>
+                        </div>
+                        <div>
+                            <dt>Desde</dt>
+                            <dd id="account-created">—</dd>
+                        </div>
+                    </dl>
+                    <div class="account-lifecycle">
+                        <div>
+                            <strong>Encerrar conta</strong>
+                            <small>Disponível apenas para conta ativa com saldo zerado.</small>
+                        </div>
+                        <button class="button button-danger" id="close-account-trigger" type="button" disabled>Encerrar</button>
+                    </div>
+                </article>
+            </section>
+
+            <section class="operations-section customer-dashboard-section" data-customer-section="operations" id="operations">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">Movimentações</p>
+                        <h2>Escolha uma operação</h2>
+                    </div>
+                    <span class="section-helper">Pagamentos e PIX exigem senha.</span>
+                </div>
+
+                <div class="operation-tabs" role="tablist" aria-label="Operações bancárias">
+                    <button class="operation-tab active" data-operation="deposit" type="button">Depósito</button>
+                    <button class="operation-tab" data-operation="payment" type="button">Pagar</button>
+                    <button class="operation-tab" data-operation="pix" type="button">PIX interno</button>
+                </div>
+
+                <div class="operation-panels">
+                    <form class="operation-panel active" id="deposit-form" data-panel="deposit">
+                        <div class="panel-intro">
+                            <span class="panel-icon deposit-icon">↓</span>
+                            <div>
+                                <h3>Depositar em dinheiro</h3>
+                                <p>Crédito imediato para uma conta ativa.</p>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <label>
+                                Conta
+                                <input class="current-account" name="account" readonly placeholder="Selecione uma conta">
+                            </label>
+                            <label>
+                                Valor
+                                <div class="currency-input"><span>R$</span><input class="money-input" name="amount" inputmode="numeric" placeholder="0,00" required></div>
+                            </label>
+                        </div>
+                        <button class="button button-primary" type="submit">Confirmar depósito</button>
+                    </form>
+
+                    <form class="operation-panel" id="payment-form" data-panel="payment">
+                        <div class="panel-intro">
+                            <span class="panel-icon withdraw-icon">▥</span>
+                            <div>
+                                <h3>Pagar boleto</h3>
+                                <p>Informe os 44 dígitos do código de barras para gerar a linha digitável.</p>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <label>
+                                Conta
+                                <input class="current-account" name="account" readonly placeholder="Selecione uma conta">
+                            </label>
+                            <label>
+                                Código de barras
+                                <input id="payment-barcode" name="barcode" inputmode="numeric" maxlength="44" placeholder="Digite os 44 dígitos" required>
+                            </label>
+                            <label class="wide-field">
+                                Linha digitável — 47 dígitos em 3 blocos
+                                <input id="payment-digitable-line" readonly placeholder="Será gerada automaticamente">
+                                <small class="field-hint" id="payment-barcode-feedback">Digite somente números.</small>
+                            </label>
+                            <label>
+                                Valor
+                                <div class="currency-input"><span>R$</span><input class="money-input" name="amount" inputmode="numeric" placeholder="0,00" required></div>
+                            </label>
+                            <label>
+                                Descrição da conta paga
+                                <input name="description" maxlength="120" placeholder="Ex.: Conta de energia" required>
+                            </label>
+                            <label class="wide-field">
+                                Digite sua senha
+                                <input name="password" type="password" minlength="6" placeholder="Digite sua senha" required>
+                            </label>
+                        </div>
+                        <button class="button button-primary" type="submit">Confirmar pagamento</button>
+                    </form>
+
+                    <form class="operation-panel" id="pix-form" data-panel="pix">
+                        <div class="panel-intro">
+                            <span class="panel-icon pix-icon">✦</span>
+                            <div>
+                                <h3>Transferir via PIX</h3>
+                                <p>Entre contas do próprio banco, com confirmação em uma única transação.</p>
+                            </div>
+                        </div>
+                        <div class="pix-key-box">
+                            <div>
+                                <strong>Minhas chaves PIX</strong>
+                                <small id="pix-keys-list">Nenhuma chave cadastrada.</small>
+                            </div>
+                            <div class="pix-key-actions">
+                                <button class="button button-quiet pix-key-create" data-key-type="EMAIL" type="button">Usar e-mail</button>
+                                <button class="button button-quiet pix-key-create" data-key-type="PHONE" type="button">Usar telefone</button>
+                                <button class="button button-quiet pix-key-create" data-key-type="CPF" type="button">Usar CPF</button>
+                                <button class="button button-quiet pix-key-create" data-key-type="RANDOM" type="button">Gerar aleatória</button>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <label>
+                                Conta de origem
+                                <input class="current-account" name="sourceAccount" readonly placeholder="Selecione uma conta">
+                            </label>
+                            <label>
+                                Chave PIX de destino
+                                <input name="destinationKey" maxlength="254" placeholder="E-mail, telefone, CPF ou chave aleatória" autocomplete="off" required>
+                                <small class="pix-recipient-feedback" id="pix-recipient-feedback" aria-live="polite"></small>
+                            </label>
+                            <label>
+                                Valor
+                                <div class="currency-input"><span>R$</span><input class="money-input" name="amount" inputmode="numeric" placeholder="0,00" required></div>
+                            </label>
+                            <label>
+                                Digite sua senha
+                                <input name="password" type="password" minlength="6" placeholder="Digite sua senha" required>
+                            </label>
+                        </div>
+                        <button class="button button-primary" type="submit">Enviar PIX</button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="statement-section customer-dashboard-section" data-customer-section="statement" id="statement">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">Extrato bancário</p>
+                        <h2 id="statement-title">Extrato bancário completo</h2>
+                        <small class="statement-generated" id="statement-generated">Data e hora serão atualizadas ao consultar.</small>
+                    </div>
+                    <div class="statement-actions">
+                        <button class="button button-secondary" id="refresh-statement" type="button">↻ Atualizar</button>
+                        <a class="button button-quiet" id="text-statement-link" href="#" target="_blank" rel="noreferrer">Extrato em texto</a>
+                        <a class="button button-download statement-download" data-format="pdf" href="#" download>PDF</a>
+                        <a class="button button-download statement-download" data-format="png" href="#" download>PNG</a>
+                        <a class="button button-download statement-download" data-format="jpeg" href="#" download>JPEG</a>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Operação</th>
+                                <th>Data e hora</th>
+                                <th>Valor</th>
+                                <th>Saldo após operação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-body">
+                            <tr class="empty-row">
+                                <td colspan="4">Faça login para visualizar o extrato.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="statement-section hidden" id="admin">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow welcome-eyebrow"><span></span> Central administrativa</p>
+                        <h2>Visão geral dos clientes</h2>
+                        <small class="statement-generated" id="admin-generated">Dados financeiros consolidados do Banco SRJM.</small>
+                    </div>
+                    <button class="button button-secondary" id="refresh-admin" type="button">↻ Atualizar</button>
+                </div>
+                <div class="admin-overview-cards">
+                    <article>
+                        <span>Total no banco</span>
+                        <strong id="admin-total-balance">R$ 0,00</strong>
+                        <small>Soma dos saldos de todos os clientes</small>
+                    </article>
+                    <article>
+                        <span>Contas de clientes</span>
+                        <strong id="admin-total-customers">0</strong>
+                        <small>Cadastros encontrados no banco</small>
+                    </article>
+                </div>
+                <div class="admin-account-filters" role="group" aria-label="Filtrar contas por status">
+                    <button class="active" data-admin-filter="ALL" type="button">Todas</button>
+                    <button data-admin-filter="ATIVA" type="button">Ativas</button>
+                    <button data-admin-filter="ENCERRADA" type="button">Encerradas</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Conta</th>
+                                <th>Cliente</th>
+                                <th>Contato</th>
+                                <th>CPF</th>
+                                <th>Status</th>
+                                <th>Criada em</th>
+                                <th>Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-accounts-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal hidden" id="account-modal" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
+        <div class="modal-backdrop" data-close-modal></div>
+        <section class="modal-card">
+            <button class="modal-close" data-close-modal type="button" aria-label="Fechar">×</button>
+            <span class="modal-kicker">Abertura digital</span>
+            <h2 id="account-modal-title">Abra sua conta em poucos passos.</h2>
+            <form id="create-account-form">
+                <div class="form-grid">
+                    <label>
+                        Nome do titular
+                        <input name="holderName" minlength="3" maxlength="150" placeholder="Ex.: João Silva" required>
+                    </label>
+                    <label class="customer-account-field">
+                        E-mail
+                        <input name="email" type="email" maxlength="254" placeholder="Ex.: joao@email.com" autocomplete="email" required>
+                    </label>
+                    <label class="customer-account-field">
+                        Telefone com DDD
+                        <input name="phone" inputmode="numeric" pattern="[0-9]{11}" minlength="11" maxlength="11" placeholder="Ex.: 81999999999" autocomplete="tel" required>
+                    </label>
+                    <label class="customer-account-field">
+                        CPF
+                        <input name="cpf" inputmode="numeric" pattern="[0-9]{11}" minlength="11" maxlength="11" placeholder="Digite os 11 números" autocomplete="off" required>
+                    </label>
+                    <label>
+                        Senha
+                        <input name="password" type="password" minlength="6" maxlength="128" placeholder="Mínimo de 6 caracteres" required>
+                    </label>
+                    <label class="checkbox-field wide-field">
+                        <input name="administrator" type="checkbox">
+                        <span>
+                            Conta administradora
+                            <small>Exige o token administrativo e permite consultar todas as contas.</small>
+                        </span>
+                    </label>
+                    <label class="wide-field administrator-token-field hidden">
+                        Token administrativo
+                        <input name="administratorToken" type="password" maxlength="128" placeholder="Digite o token de administrador" autocomplete="off">
+                    </label>
+                </div>
+                <button class="button button-primary button-full" type="submit">Criar conta</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="modal hidden" id="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-modal-title">
+        <div class="modal-backdrop" data-close-modal></div>
+        <section class="modal-card">
+            <button class="modal-close" data-close-modal type="button" aria-label="Fechar">×</button>
+            <span class="modal-kicker">Acesso do cliente</span>
+            <h2 id="login-modal-title">Entre na sua conta.</h2>
+            <p>Use seu CPF ou o número completo da conta, com o dígito verificador, e a senha cadastrada.</p>
+            <form id="login-form">
+                <div class="form-grid">
+                    <label>
+                        CPF ou número da conta
+                        <input class="login-identifier-input" name="account" inputmode="numeric" maxlength="14" placeholder="Digite seu CPF ou conta" autocomplete="username" required>
+                    </label>
+                    <label>
+                        Senha
+                        <input name="password" type="password" minlength="6" maxlength="128" autocomplete="current-password" required>
+                    </label>
+                </div>
+                <button class="button button-primary button-full" type="submit">Entrar</button>
+                <button class="button button-quiet button-full" id="forgot-password-trigger" type="button">Esqueci minha senha</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="modal hidden" id="forgot-password-modal" role="dialog" aria-modal="true" aria-labelledby="forgot-password-title">
+        <div class="modal-backdrop" data-close-modal></div>
+        <section class="modal-card">
+            <button class="modal-close" data-close-modal type="button" aria-label="Fechar">×</button>
+            <span class="modal-kicker">Recuperação de acesso</span>
+            <h2 id="forgot-password-title">Esqueceu sua senha?</h2>
+            <p>Informe a conta e o e-mail utilizado na abertura. Você receberá um link válido por 30 minutos.</p>
+            <form id="forgot-password-form">
+                <div class="form-grid">
+                    <label>
+                        Conta
+                        <input class="account-reference-input" name="account" inputmode="numeric" maxlength="9" placeholder="Digite apenas os números" required>
+                    </label>
+                    <label>
+                        E-mail cadastrado
+                        <input name="email" type="email" maxlength="254" autocomplete="email" required>
+                    </label>
+                </div>
+                <button class="button button-primary button-full" type="submit">Enviar link</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="modal hidden" id="reset-password-modal" role="dialog" aria-modal="true" aria-labelledby="reset-password-title">
+        <div class="modal-backdrop" data-close-modal></div>
+        <section class="modal-card">
+            <button class="modal-close" data-close-modal type="button" aria-label="Fechar">×</button>
+            <span class="modal-kicker">Nova senha</span>
+            <h2 id="reset-password-title">Crie uma nova senha.</h2>
+            <p>Escolha uma senha com pelo menos 6 caracteres.</p>
+            <form id="reset-password-form">
+                <input name="token" type="hidden">
+                <div class="form-grid">
+                    <label>
+                        Nova senha
+                        <input name="newPassword" type="password" minlength="6" maxlength="128" autocomplete="new-password" required>
+                    </label>
+                    <label>
+                        Confirmar nova senha
+                        <input name="confirmPassword" type="password" minlength="6" maxlength="128" autocomplete="new-password" required>
+                    </label>
+                </div>
+                <button class="button button-primary button-full" type="submit">Redefinir senha</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="modal hidden" id="close-account-modal" role="dialog" aria-modal="true" aria-labelledby="close-account-modal-title">
+        <div class="modal-backdrop" data-close-modal></div>
+        <section class="modal-card danger-modal">
+            <button class="modal-close" data-close-modal type="button" aria-label="Fechar">×</button>
+            <span class="modal-kicker">Encerramento de conta</span>
+            <h2 id="close-account-modal-title">Confirmar encerramento?</h2>
+            <p>A conta só pode ser encerrada se estiver ativa e com saldo R$ 0,00. O histórico continuará disponível para consulta.</p>
+            <form id="close-account-form">
+                <div class="form-grid">
+                    <label class="wide-field">
+                        Senha da conta
+                        <input name="password" type="password" minlength="6" maxlength="128" placeholder="Digite sua senha para confirmar" required>
+                    </label>
+                </div>
+                <button class="button button-danger button-full" type="submit">Confirmar encerramento</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="/assets/js/app.js" defer></script>
+</body>
+</html>

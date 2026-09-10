@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: banco-srjm
+  namespace: banco-srjm
+spec:
+  secretName: banco-srjm-tls
+  dnsNames:
+  - bancosrjm.geradorqrcode-srjm.uk
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: letsencrypt-production
+  privateKey:
+    rotationPolicy: Always

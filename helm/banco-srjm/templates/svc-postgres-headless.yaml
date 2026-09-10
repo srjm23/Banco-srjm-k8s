@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-headless
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    app: postgres
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+  - name: tcp-postgres
+    port: 5432
+    targetPort: tcp-postgres
+  clusterIP: None

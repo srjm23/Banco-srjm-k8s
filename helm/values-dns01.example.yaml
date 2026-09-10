@@ -1,0 +1,14 @@
+certManager:
+  createIssuer: true
+  email: srjm99silva@gmail.com
+  solvers:
+  - selector:
+      dnsNames:
+      - bancosrjm.geradorqrcode-srjm.uk
+      - '*.geradorqrcode-srjm.uk'
+    dns01:
+      cloudflare:
+        email: srjm99silva@gmail.com
+        apiTokenSecretRef:
+          name: cloudflare-api-token-secret
+          key: api-token

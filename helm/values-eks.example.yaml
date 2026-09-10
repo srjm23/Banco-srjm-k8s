@@ -1,0 +1,13 @@
+istio:
+  host: bancosrjm.geradorqrcode-srjm.uk
+postgres:
+  persistence:
+    size: 20Gi
+    storageClassName: banco-ebs-gp3
+storageClass:
+  create: true
+  provisioner: ebs.csi.aws.com
+secrets:
+  create: false
+  postgresName: postgres-secret
+  backendName: backend-secret

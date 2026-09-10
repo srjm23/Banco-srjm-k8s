@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mailpit
+  namespace: banco-srjm
+spec:
+  selector:
+    app: mailpit
+  ports:
+  - name: tcp-smtp
+    port: 1025
+    targetPort: tcp-smtp
+  - name: http
+    port: 8025
+    targetPort: http

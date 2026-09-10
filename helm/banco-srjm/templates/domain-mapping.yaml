@@ -1,0 +1,20 @@
+{{ if .Values.knative.enabled }}
+{{ if not .Values.certManager.enabled }}
+{{ fail "Knative exige certManager.enabled=true para o DomainMapping HTTPS" }}
+{{ end }}
+apiVersion: serving.knative.dev/v1beta1
+kind: DomainMapping
+metadata:
+  name: {{ .Values.istio.host | quote }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    networking.knative.dev/ingress-class: {{ .Values.knative.ingressClass | quote }}
+    networking.knative.dev/http-protocol: redirected
+spec:
+  ref:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: frontend
+  tls:
+    secretName: {{ .Values.certManager.secretName | quote }}
+{{ end }}

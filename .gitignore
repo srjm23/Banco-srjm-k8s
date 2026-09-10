@@ -1,0 +1,13 @@
+/k8s/secrets.yaml
+*.key
+
+/helm/**/values-secrets.yaml
+/helm/*.local.yaml
+
+/k8s/postgres-secret.yaml
+/k8s/backend-secret.yaml
+/k8s/cloudflare-secret.yaml
+/k8s/frontend-secret.yaml
+/k8s/mailpit-secret.yaml
+
+/k8s/backend-application-secret.yaml

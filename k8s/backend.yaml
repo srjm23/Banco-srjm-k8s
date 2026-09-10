@@ -1,0 +1,87 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: backend
+  namespace: banco-srjm
+  labels:
+    networking.knative.dev/visibility: cluster-local
+  annotations:
+    networking.knative.dev/ingress-class: istio.ingress.networking.knative.dev
+spec:
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: 'false'
+        autoscaling.knative.dev/min-scale: '1'
+        autoscaling.knative.dev/max-scale: '3'
+        checksum/runtime: 6d2720ab14e281bed101a28c35d4bfffff393692405d38134ac3ba93130396a4
+        checksum/config: ee4a1e6a3d8df8b9f8aa1d090e0910d8c53f4c22e5170162281943358e9889f0
+        checksum/secrets: 75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              key: POSTGRES_DB
+              name: postgres-config
+        - name: DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: DB_URL
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              key: POSTGRES_USER
+              name: postgres-config
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: POSTGRES_PASSWORD
+              name: postgres-secret
+        - name: SPRING_FLYWAY_CONNECT_RETRIES
+          value: '60'
+        - name: SERVER_PORT
+          value: '8080'
+        envFrom:
+        - configMapRef:
+            name: backend-config
+        - secretRef:
+            name: backend-secret
+        image: srjm2024/banco-srjm-backend:latest
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/actuator/health/liveness
+          periodSeconds: 10
+          timeoutSeconds: 3
+          initialDelaySeconds: 300
+        name: backend
+        ports:
+        - containerPort: 8080
+          name: http1
+        readinessProbe:
+          httpGet:
+            path: /api/actuator/health/readiness
+          periodSeconds: 10
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: '1'
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi
+        volumeMounts:
+        - mountPath: /etc/banco
+          name: application-config
+          readOnly: true
+      volumes:
+      - name: application-config
+        secret:
+          secretName: backend-application
+      imagePullSecrets: []
+      containerConcurrency: 20
+      timeoutSeconds: 300

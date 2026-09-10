@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailpit
+  namespace: banco-srjm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mailpit
+  template:
+    metadata:
+      labels:
+        app: mailpit
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: mailpit
+        image: axllent/mailpit:v1.27
+        imagePullPolicy: Always
+        ports:
+        - name: tcp-smtp
+          containerPort: 1025
+        - name: http
+          containerPort: 8025
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        readinessProbe:
+          tcpSocket:
+            port: 8025
+          periodSeconds: 10
