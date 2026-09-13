@@ -160,9 +160,7 @@ helm --kube-context eks-new upgrade istio-ingress istio/gateway -n istio-ingress
 ```
 
 O Service original do gateway passa a ClusterIP; o Service Classic é a única
-entrada pública desejada. Os Gateways/VirtualServices convencionais estão em
-`k8s/legacy/` e não são aplicados junto ao Knative. O template Helm de Istio
-atende ao modo Deployment opcional, sem duplicar as rotas geradas pelo Knative.
+entrada pública desejada. Os manifests convencionais duplicados e o chart alternativo da aplicação foram removidos. Kustomize mantém a aplicação e a integração; Helm instala os componentes oficiais da plataforma. Consulte o [inventário e comandos de instalação](arquitetura-e-instalacao.md).
 
 ## Referências
 

@@ -1,0 +1,50 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    networking.knative.dev/ingress-class: {{ .Values.knative.ingressClass | quote }}
+spec:
+  {{- with .Values.knative.traffic }}
+  traffic: {{ . | toJson }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: 'false'
+        autoscaling.knative.dev/min-scale: {{ .Values.knative.minScale | quote }}
+        autoscaling.knative.dev/max-scale: {{ .Values.knative.maxScale | quote }}
+        config-version: {{ .Values.configVersion | quote }}
+        checksum/config: {{ include (print .Template.BasePath "/frontend-nginx.yaml") . | sha256sum }}
+    spec:
+      containers:
+      - image: {{ include "image.reference" . | quote }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        name: frontend
+        ports:
+        - containerPort: 8080
+          name: http1
+        readinessProbe:
+          httpGet:
+            path: /healthz
+          periodSeconds: 10
+        resources: {{ .Values.resources | toJson }}
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/banco-nginx
+          readOnly: true
+        command:
+        - nginx
+        args:
+        - -c
+        - /etc/banco-nginx/nginx-main.conf
+        - -g
+        - daemon off;
+      volumes:
+      - configMap:
+          name: frontend-nginx
+        name: nginx-config
+      imagePullSecrets: {{ .Values.imagePullSecrets | toJson }}
+      containerConcurrency: {{ .Values.knative.containerConcurrency }}
+      timeoutSeconds: {{ .Values.knative.timeoutSeconds }}

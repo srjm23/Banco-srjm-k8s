@@ -1,0 +1,6 @@
+apiVersion: v2
+name: banco-srjm-frontend
+description: Frontend Knative do Banco SRJM
+type: application
+version: 1.0.0
+appVersion: latest

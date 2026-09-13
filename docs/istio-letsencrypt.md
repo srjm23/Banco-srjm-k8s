@@ -1,170 +1,20 @@
-# Let's Encrypt DNS-01 com Cloudflare no Istio
+# Certificado HTTPS e Cloudflare
 
-O emissor `k8s/letsencrypt-production.yaml` agora usa **DNS-01 com Cloudflare** para validação de domínio, funcionando com Istio Gateway e Knative. A validação ocorre via DNS records, não via HTTP, eliminando dependência de HTTP-01 Ingress.
+O cert-manager usa o ClusterIssuer de `k8s/letsencrypt-production.yaml` para emitir certificados Let's Encrypt por DNS-01. Ele lê a chave `api-token` do Secret `cert-manager/cloudflare-api-token-secret`, sincronizado do Vault pelo ExternalSecret de mesmo nome.
 
-## Vantagens de DNS-01
+O token permite ao cert-manager criar e remover o TXT temporário de validação `_acme-challenge.bancosrjm.geradorqrcode-srjm.uk`. Ele não é usado pelo frontend, pelo Istio ou pelo Classic ELB para atender requisições. O registro CNAME da aplicação é configurado separadamente na Cloudflare. Para o solver, limite o token à zona necessária, com permissões Zone DNS Edit e Zone Read, conforme a [documentação do cert-manager](https://cert-manager.io/docs/configuration/acme/dns01/cloudflare/).
 
-- ✅ Funciona com qualquer tipo de Gateway (Istio, Knative, etc)
-- ✅ Não requer acesso HTTP público temporário
-- ✅ Pode validar wildcards (`*.dominio.com`)
-- ✅ Mais robusto e seguro
-- ✅ Não depende de IngressClass ou configuração de Ingress
+`k8s/certificate.yaml` solicita o certificado do domínio e o cert-manager gera o Secret `banco-srjm-tls` em `banco-srjm`. `k8s/domain-mapping.yaml` associa esse Secret TLS ao domínio e ao frontend. A integração Knative/Istio configura o gateway para servir o certificado.
 
-## Pré-requisitos
-
-- **cert-manager** instalado no cluster (1.12+)
-- **Cloudflare** como provedor DNS da zona `geradorqrcode-srjm.uk`
-- **API Token Cloudflare** com permissão para editar DNS records
-- DNS público apontando para o LoadBalancer do Istio/Knative
-
-## Configuração
-
-### 1. Secret do Cloudflare (já criado)
-
-```yaml
-# k8s/cloudflare-secret.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cloudflare-api-token-secret
-  namespace: cert-manager
-type: Opaque
-stringData:
-  api-token: YOUR_CLOUDFLARE_API_TOKEN
-```
-
-**Nota importante**: Este arquivo contém credenciais sensíveis. Adicione ao `.gitignore` ou use sealed-secrets em produção.
-
-### 2. ClusterIssuer com DNS-01
-
-O `k8s/letsencrypt-production.yaml` agora configura:
-
-```yaml
-solvers:
-  - selector:
-      dnsNames:
-        - bancosrjm.geradorqrcode-srjm.uk
-        - '*.geradorqrcode-srjm.uk'
-    dns01:
-      cloudflare:
-        email: srjm99silva@gmail.com
-        apiTokenSecretRef:
-          name: cloudflare-api-token-secret
-          key: api-token
-```
-
-Sem necessidade de Ingress ou IngressClass.
-
-## Aplicar e verificar
+Com proxy Cloudflare, existem duas conexões TLS: navegador → Cloudflare e Cloudflare → Istio, passando pelo Classic ELB TCP. Configure Full (strict), que valida o certificado da origem. O teste público confirmou `server: cloudflare` e HTTPS 200; isso não revela sozinho o modo SSL escolhido no painel. Veja [Full (strict)](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/).
 
 ```sh
-# Aplicar manifests
-kubectl apply -k k8s
-
-# Aguardar ClusterIssuer estar pronto
-kubectl wait --for=condition=Ready clusterissuer/letsencrypt-production --timeout=120s
-
-# Monitorar Certificate
-kubectl -n banco-srjm get certificate
-kubectl -n banco-srjm describe certificate banco-srjm
-
-# Se demorar, verifique Order e Challenge
-kubectl -n banco-srjm get order,challenge
-kubectl -n banco-srjm describe order
-kubectl -n banco-srjm describe challenge
-
-# Aguardar Certificate pronto
-kubectl -n banco-srjm wait --for=condition=Ready certificate/banco-srjm --timeout=600s
-
-# Validar Secret TLS gerado
-kubectl -n banco-srjm get secret banco-srjm-tls -o json | jq '.data."tls.crt"' | base64 -d | openssl x509 -text -noout
+kubectl --context eks-new get clusterissuer letsencrypt-production
+kubectl --context eks-new -n cert-manager get externalsecret cloudflare-api-token-secret
+kubectl --context eks-new -n banco-srjm get certificate,domainmapping
+kubectl --context eks-new -n banco-srjm get orders,challenges
+curl -I https://bancosrjm.geradorqrcode-srjm.uk/
+curl https://bancosrjm.geradorqrcode-srjm.uk/api/actuator/health
 ```
 
-## Fluxo de validação DNS-01
-
-1. cert-manager cria um recurso `Order` com os domínios
-2. Let's Encrypt retorna um `Challenge` com dados DNS
-3. cert-manager usa a API Cloudflare para criar um registro TXT temporário
-4. Let's Encrypt valida o DNS TXT
-5. Após sucesso, cert-manager remove o TXT e emite o certificado
-6. Certificado é salvo em `Secret banco-srjm-tls` no namespace `banco-srjm`
-
-## Troubleshooting
-
-### Certificate fica "Pending"
-
-```sh
-# Verifique o Challenge
-kubectl -n banco-srjm describe challenge
-
-# Comum: API Token inválido ou sem permissões
-# Solução: Gere novo token em Account Settings > API Tokens com permissão de editar DNS
-
-# Verificar logs do cert-manager
-kubectl -n cert-manager logs -l app.kubernetes.io/name=cert-manager --tail=100
-```
-
-### DNS TXT não criado automaticamente
-
-```sh
-# Verifique as credenciais Cloudflare
-kubectl -n cert-manager get secret cloudflare-api-token-secret -o jsonpath='{.data.api-token}' | base64 -d
-
-# Teste acesso à API Cloudflare:
-curl -X GET "https://api.cloudflare.com/client/v4/user" \
-  -H "X-Auth-Email: srjm99silva@gmail.com" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json"
-```
-
-### Certificate com domínios não encontrados
-
-```sh
-# Verify SANs no Certificate
-kubectl -n banco-srjm get certificate banco-srjm -o jsonpath='{.spec.dnsNames}'
-
-# Se faltar wildcard ou subdomain, edite certificate.yaml e reaplique
-```
-
-## Segurança
-
-- **NÃO commite credenciais** no Git. Use:
-  - Sealed Secrets ou External Secrets
-  - Git crypt
-  - `.gitignore` com backup seguro
-
-Em produção:
-```sh
-# Exemplo com External Secrets
-apiVersion: external-secrets.io/v1beta1
-kind: SecretStore
-metadata:
-  name: vault-backend
-spec:
-  provider:
-    vault:
-      server: "https://vault.example.com"
-      path: "secret"
-```
-
-## Próximas etapas
-
-1. ✅ Certificado emitido pelo Let's Encrypt (prod)
-2. ✅ Salvo em `banco-srjm-tls` Secret
-3. ✅ DomainMapping do Knative referencia esse Secret
-4. ✅ Istio Gateway expõe HTTPS automaticamente
-
-Teste acesso:
-```sh
-# HTTP → HTTPS (redirect)
-curl -I https://bancosrjm.geradorqrcode-srjm.uk
-
-# Verificar certificado
-openssl s_client -connect bancosrjm.geradorqrcode-srjm.uk:443 -showcerts
-```
-
-## Referências
-
-- [cert-manager DNS-01](https://cert-manager.io/docs/configuration/acme/dns01/)
-- [Cloudflare DNS API](https://developers.cloudflare.com/api/)
-- [Knative Custom Domains + TLS](https://knative.dev/docs/serving/services/custom-domains/)
+A emissão usa DNS-01; os exemplos antigos de HTTP-01 e os manifests de Secret com token literal foram retirados do fluxo. Veja o [guia completo](arquitetura-e-instalacao.md) e [Vault](vault-external-secrets.md).

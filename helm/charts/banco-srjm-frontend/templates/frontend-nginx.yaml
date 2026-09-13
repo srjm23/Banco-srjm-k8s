@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-nginx
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: '-1'
+data:
+  nginx.conf: {{ tpl (.Files.Get "files/nginx.conf") . | toJson }}
+  nginx-main.conf: {{ .Files.Get "files/nginx-main.conf" | toJson }}

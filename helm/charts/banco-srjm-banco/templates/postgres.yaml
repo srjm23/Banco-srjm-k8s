@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    helm.sh/resource-policy: keep
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+      annotations:
+        sidecar.istio.io/inject: 'false'
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: postgres
+        image: {{ include "image.reference" . | quote }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: tcp-postgres
+          containerPort: 5432
+        resources: {{ .Values.resources | toJson }}
+        envFrom:
+        - configMapRef:
+            name: postgres-config
+        - secretRef:
+            name: {{ .Values.secrets.postgresName | quote }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        startupProbe:
+          exec: &id001
+            command:
+            - sh
+            - -c
+            - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          exec: *id001
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+      imagePullSecrets: {{ .Values.imagePullSecrets | toJson }}
+  serviceName: postgres-headless
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: {{ .Values.persistence.storageClassName | quote }}
+      resources:
+        requests:
+          storage: {{ .Values.persistence.size | quote }}

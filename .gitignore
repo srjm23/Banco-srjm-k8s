@@ -11,3 +11,9 @@
 /k8s/mailpit-secret.yaml
 
 /k8s/backend-application-secret.yaml
+
+/.secrets/
+
+__pycache__/
+
+/build/

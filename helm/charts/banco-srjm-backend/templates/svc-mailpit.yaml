@@ -1,0 +1,17 @@
+{{- if .Values.mailpit.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: mailpit
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: mailpit
+  ports:
+  - name: tcp-smtp
+    port: 1025
+    targetPort: tcp-smtp
+  - name: http
+    port: 8025
+    targetPort: http
+{{- end }}

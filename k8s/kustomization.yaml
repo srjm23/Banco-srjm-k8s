@@ -4,20 +4,16 @@ sortOptions:
   order: fifo
 resources:
 - namespace.yaml
+- vault
 - platform
 - storageclass.yaml
 - postgres-config.yaml
 - backend-config.yaml
 - frontend-nginx.yaml
-- postgres-secret.yaml
-- backend-secret.yaml
-- backend-application-secret.yaml
-- frontend-secret.yaml
-- mailpit-secret.yaml
-- cloudflare-secret.yaml
+- external-secrets
 - letsencrypt-production.yaml
 - svc-postgres.yaml
-- svc-postgress-head.yaml
+- svc-postgres-headless.yaml
 - svc-mailpit.yaml
 - postgres.yaml
 - mailpit.yaml

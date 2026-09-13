@@ -38,14 +38,7 @@ Apesar de ambos usarem `kind: Service`, são recursos diferentes:
 | `v1` | Fornecer acesso de rede a workloads Kubernetes |
 
 [backend.yaml](backend.yaml) e [frontend.yaml](frontend.yaml) declaram Services
-Knative. Seus Services internos são gerenciados pelo Knative, portanto não se
-deve aplicar os Services manuais de [legacy/svc-backend.yaml](legacy/svc-backend.yaml)
-e [legacy/svc-frontend.yaml](legacy/svc-frontend.yaml) junto dessa configuração.
-Esses arquivos legados não são referenciados pelo [kustomization.yaml](kustomization.yaml).
-
-Remover um arquivo legado do repositório é diferente de excluir um recurso do
-cluster. Não exclua Services existentes de frontend/backend sem verificar seus
-`ownerReferences`: eles podem estar sob gerenciamento do Knative.
+Knative. Seus Services internos e Deployments de revisão são gerenciados pelo Knative. Os manifests convencionais que duplicavam esses recursos foram removidos do repositório. A configuração aplicada está em [kustomization.yaml](kustomization.yaml).
 
 ## Fluxo das requisições
 
@@ -53,9 +46,9 @@ Fluxo lógico simplificado, após provisionar a entrada pública e configurar o 
 
 ```mermaid
 flowchart TD
-    A[Usuário] --> B[DNS na Cloudflare]
+    A[Usuário] --> B[Proxy HTTPS da Cloudflare]
     B --> C[Classic ELB público AWS]
-    C --> D[Service istio-ingress e gateway Istio]
+    C --> D[Service istio-ingress-classic e gateway Istio]
     D --> E[Roteamento Knative do frontend]
     E --> F[Frontend Nginx]
     F -->|Arquivos da interface| G[Resposta ao navegador]
@@ -131,9 +124,7 @@ após configurar o controller conforme o
 
 O Service usa o namespace `istio-ingress` e o selector `istio: ingress` junto
 com `app: istio-ingress`. O recurso Gateway de roteamento não cria o ELB por si só.
-No fluxo Knative, o domínio é declarado no DomainMapping. Os manifests manuais
-[legacy/istio.yaml](legacy/istio.yaml) e [legacy/Istio-vs.yaml](legacy/Istio-vs.yaml)
-pertencem ao modo convencional e ficam fora do Kustomization.
+No fluxo Knative, o domínio é declarado no DomainMapping. Gateways e VirtualServices são reconciliados pela integração Knative/Istio; não há manifests manuais concorrentes.
 
 ## PostgreSQL
 
@@ -143,7 +134,7 @@ StatefulSet e volume persistente. Os dois Services Kubernetes devem ser mantidos
 | Manifesto | Função |
 | --- | --- |
 | [svc-postgres.yaml](svc-postgres.yaml) | Acesso interno ao banco pela porta 5432 |
-| [svc-postgress-head.yaml](svc-postgress-head.yaml) | Service headless referenciado pelo StatefulSet para identidade de rede |
+| [svc-postgres-headless.yaml](svc-postgres-headless.yaml) | Service headless referenciado pelo StatefulSet para identidade de rede |
 
 O endereço disponível é `postgres.banco-srjm.svc.cluster.local:5432`.
 O backend recebe sua URL de conexão por `DB_URL`, via Secret; essa configuração

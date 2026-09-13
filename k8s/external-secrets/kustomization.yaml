@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+sortOptions:
+  order: fifo
+resources:
+- vault-ca.yaml
+- vault-banco-reader.yaml
+- cluster-store-banco.yaml
+- vault-cert-manager-reader.yaml
+- cluster-store-cert-manager.yaml
+- postgres-secret.yaml
+- backend-secret.yaml
+- backend-application.yaml
+- frontend-secret.yaml
+- mailpit-secret.yaml
+- cloudflare-api-token-secret.yaml

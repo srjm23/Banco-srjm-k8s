@@ -1,0 +1,35 @@
+name: Publicar repositório Helm
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: helm-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Obter arquivos
+      uses: actions/checkout@v6
+    - name: Configurar Pages
+      uses: actions/configure-pages@v5
+    - name: Verificar arquivos para publicação
+      run: |
+        test -s helm/repository/index.yaml
+        for component in banco backend frontend; do
+          packages=(helm/repository/banco-srjm-"$component"-*.tgz)
+          test -s "${packages[0]}"
+        done
+    - name: Enviar repositório Helm
+      uses: actions/upload-pages-artifact@v4
+      with:
+        path: helm/repository
+    - name: Publicar Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

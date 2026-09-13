@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: banco
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://srjm23.github.io/Banco-srjm-k8s/
+    targetRevision: 1.0.0
+    helm:
+      releaseName: banco
+    chart: banco-srjm-banco
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: banco-srjm
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    - FailOnSharedResource=true

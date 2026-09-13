@@ -1,0 +1,32 @@
+{{- if .Values.mailpit.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailpit
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mailpit
+  template:
+    metadata:
+      labels:
+        app: mailpit
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: mailpit
+        image: {{ include "mailpit-image.reference" . | quote }}
+        imagePullPolicy: {{ .Values.mailpit.image.pullPolicy }}
+        ports:
+        - name: tcp-smtp
+          containerPort: 1025
+        - name: http
+          containerPort: 8025
+        resources: {{ .Values.mailpit.resources | toJson }}
+        readinessProbe:
+          tcpSocket:
+            port: 8025
+          periodSeconds: 10
+{{- end }}

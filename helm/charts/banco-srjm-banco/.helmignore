@@ -1,0 +1,4 @@
+.git
+*.tgz
+*.local.yaml
+values-secrets.yaml

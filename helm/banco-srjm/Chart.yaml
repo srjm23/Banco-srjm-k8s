@@ -1,7 +1,0 @@
-apiVersion: v2
-name: banco-srjm
-description: Banco SRJM no EKS com Knative Serving, PostgreSQL persistente e Istio
-type: application
-version: 0.3.0
-appVersion: latest
-kubeVersion: '>=1.26.0-0'

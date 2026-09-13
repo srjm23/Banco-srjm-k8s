@@ -1,3 +1,5 @@
+> Registro histórico de uma revisão anterior. Os comandos do chart da aplicação deixaram de ser aplicáveis após a consolidação em Kustomize. Para o ambiente atual, consulte [arquitetura e instalação](arquitetura-e-instalacao.md).
+
 # Revisão pré-deploy — 2026-09-09
 
 Registro da revisão do modo convencional. A configuração atual de `k8s/` usa Knative; veja o README principal e `knative-letsencrypt.md`.

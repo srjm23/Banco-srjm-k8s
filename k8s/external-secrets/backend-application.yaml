@@ -1,0 +1,17 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: backend-application
+  namespace: banco-srjm
+spec:
+  refreshInterval: 1m
+  secretStoreRef:
+    name: vault-banco
+    kind: ClusterSecretStore
+  target:
+    name: backend-application
+    creationPolicy: Orphan
+    deletionPolicy: Retain
+  dataFrom:
+  - extract:
+      key: banco-srjm/backend-application

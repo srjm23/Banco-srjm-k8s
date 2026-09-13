@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-ca
+  namespace: external-secrets
+data:
+  ca.crt: '-----BEGIN CERTIFICATE-----
+
+    MIIBdzCCARygAwIBAgIUZQ3KeUih5Jpv1QdBryNMP7XmjT4wCgYIKoZIzj0EAwIw
+
+    GTEXMBUGA1UEAxMOYmFuY28tdmF1bHQtY2EwHhcNMjYwOTExMTU1MzIyWhcNMzYw
+
+    OTA4MTU1MzIyWjAZMRcwFQYDVQQDEw5iYW5jby12YXVsdC1jYTBZMBMGByqGSM49
+
+    AgEGCCqGSM49AwEHA0IABLgBZmAuwlMMR3lQp5ByPBIa7yvQdLvB3R+57zlHAgFT
+
+    U/p6bf3EWOUrofZfoZbyCZCkF5mFRuUH2laOUJFuWJujQjBAMA4GA1UdDwEB/wQE
+
+    AwICpDAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBShyZuH79Vk2meUasxyLRdA
+
+    D235IDAKBggqhkjOPQQDAgNJADBGAiEA/pU3w+IsygftpP5JJu73bNhXX+acaGIG
+
+    l5A1dl1pyooCIQC9wfDukLGCCxCoXWHgmH9kntAkzbMuSIfXcsAYL8g1HA==
+
+    -----END CERTIFICATE-----
+
+    '

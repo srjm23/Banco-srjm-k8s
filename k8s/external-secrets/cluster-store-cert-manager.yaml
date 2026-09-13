@@ -1,0 +1,27 @@
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: vault-cert-manager
+spec:
+  conditions:
+  - namespaces:
+    - cert-manager
+  provider:
+    vault:
+      server: https://vault.vault.svc:8200
+      path: secret
+      version: v2
+      caProvider:
+        type: ConfigMap
+        name: vault-ca
+        key: ca.crt
+        namespace: external-secrets
+      auth:
+        kubernetes:
+          mountPath: kubernetes
+          role: vault-cert-manager-reader
+          serviceAccountRef:
+            name: vault-cert-manager-reader
+            namespace: external-secrets
+            audiences:
+            - vault

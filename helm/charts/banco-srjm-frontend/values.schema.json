@@ -1,0 +1,193 @@
+{
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "digest": {
+          "type": "string"
+        },
+        "pullPolicy": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "repository",
+        "tag",
+        "digest",
+        "pullPolicy"
+      ]
+    },
+    "imagePullSecrets": {
+      "type": "array"
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "cpu",
+            "memory"
+          ]
+        },
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "cpu",
+            "memory"
+          ]
+        }
+      }
+    },
+    "knative": {
+      "type": "object",
+      "properties": {
+        "ingressClass": {
+          "type": "string"
+        },
+        "minScale": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxScale": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "containerConcurrency": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "traffic": {
+          "type": "array"
+        }
+      },
+      "required": [
+        "ingressClass",
+        "minScale",
+        "maxScale",
+        "containerConcurrency",
+        "timeoutSeconds",
+        "traffic"
+      ]
+    },
+    "configVersion": {
+      "type": "string"
+    },
+    "backend": {
+      "type": "object",
+      "properties": {
+        "serviceName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "serviceName",
+        "namespace"
+      ]
+    },
+    "clusterDomain": {
+      "type": "string"
+    },
+    "dnsResolver": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "host": {
+          "type": "string"
+        },
+        "createClaim": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "enabled",
+        "host",
+        "createClaim"
+      ]
+    },
+    "tls": {
+      "type": "object",
+      "properties": {
+        "secretName": {
+          "type": "string"
+        },
+        "createCertificate": {
+          "type": "boolean"
+        },
+        "issuerRef": {
+          "type": "object",
+          "properties": {
+            "group": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "group",
+            "kind",
+            "name"
+          ]
+        }
+      },
+      "required": [
+        "secretName",
+        "createCertificate",
+        "issuerRef"
+      ]
+    }
+  },
+  "required": [
+    "image",
+    "imagePullSecrets",
+    "resources",
+    "knative",
+    "configVersion",
+    "backend",
+    "clusterDomain",
+    "dnsResolver",
+    "domain",
+    "tls"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false
+}

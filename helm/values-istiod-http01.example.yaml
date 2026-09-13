@@ -1,5 +1,0 @@
-meshConfig:
-  ingressControllerMode: STRICT
-  ingressClass: istio
-  ingressService: istio-ingressgateway
-  ingressSelector: ingressgateway

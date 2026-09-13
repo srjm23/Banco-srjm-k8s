@@ -1,0 +1,27 @@
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: vault-banco
+spec:
+  conditions:
+  - namespaces:
+    - banco-srjm
+  provider:
+    vault:
+      server: https://vault.vault.svc:8200
+      path: secret
+      version: v2
+      caProvider:
+        type: ConfigMap
+        name: vault-ca
+        key: ca.crt
+        namespace: external-secrets
+      auth:
+        kubernetes:
+          mountPath: kubernetes
+          role: vault-banco-reader
+          serviceAccountRef:
+            name: vault-banco-reader
+            namespace: external-secrets
+            audiences:
+            - vault

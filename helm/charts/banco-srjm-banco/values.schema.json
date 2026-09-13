@@ -1,0 +1,180 @@
+{
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "digest": {
+          "type": "string"
+        },
+        "pullPolicy": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "repository",
+        "tag",
+        "digest",
+        "pullPolicy"
+      ]
+    },
+    "imagePullSecrets": {
+      "type": "array"
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "cpu",
+            "memory"
+          ]
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "cpu",
+            "memory"
+          ]
+        }
+      }
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "POSTGRES_DB": {
+          "type": "string"
+        },
+        "POSTGRES_USER": {
+          "type": "string"
+        },
+        "PGDATA": {
+          "type": "string"
+        }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "properties": {
+        "storageClassName": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "storageClassName",
+        "size"
+      ]
+    },
+    "secrets": {
+      "type": "object",
+      "properties": {
+        "postgresName": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "postgresName"
+      ]
+    },
+    "externalSecrets": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "storeName": {
+          "type": "string"
+        },
+        "refreshInterval": {
+          "type": "string"
+        },
+        "pathPrefix": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "storeName",
+        "refreshInterval",
+        "pathPrefix"
+      ]
+    },
+    "storageClass": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "provisioner": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "encrypted": {
+              "type": "string"
+            },
+            "fsType": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "encrypted",
+            "fsType"
+          ]
+        }
+      },
+      "required": [
+        "create",
+        "name",
+        "provisioner",
+        "parameters"
+      ]
+    }
+  },
+  "required": [
+    "image",
+    "imagePullSecrets",
+    "resources",
+    "database",
+    "persistence",
+    "secrets",
+    "externalSecrets",
+    "storageClass"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false
+}

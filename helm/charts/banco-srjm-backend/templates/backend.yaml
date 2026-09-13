@@ -1,0 +1,83 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: backend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    networking.knative.dev/visibility: cluster-local
+  annotations:
+    networking.knative.dev/ingress-class: {{ .Values.knative.ingressClass | quote }}
+spec:
+  {{- with .Values.knative.traffic }}
+  traffic: {{ . | toJson }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: 'false'
+        autoscaling.knative.dev/min-scale: {{ .Values.knative.minScale | quote }}
+        autoscaling.knative.dev/max-scale: {{ .Values.knative.maxScale | quote }}
+        config-version: {{ .Values.configVersion | quote }}
+        checksum/config: {{ include (print .Template.BasePath "/backend-config.yaml") . | sha256sum }}
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              key: POSTGRES_DB
+              name: {{ .Values.database.configMapName | quote }}
+        - name: DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.backendName | quote }}
+              key: DB_URL
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              key: POSTGRES_USER
+              name: {{ .Values.database.configMapName | quote }}
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: POSTGRES_PASSWORD
+              name: {{ .Values.secrets.postgresName | quote }}
+        - name: SPRING_FLYWAY_CONNECT_RETRIES
+          value: {{ .Values.flywayConnectRetries | quote }}
+        - name: SERVER_PORT
+          value: '8080'
+        envFrom:
+        - configMapRef:
+            name: backend-config
+        - secretRef:
+            name: {{ .Values.secrets.backendName | quote }}
+        image: {{ include "image.reference" . | quote }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/actuator/health/liveness
+          periodSeconds: 10
+          timeoutSeconds: 3
+          initialDelaySeconds: 300
+        name: backend
+        ports:
+        - containerPort: 8080
+          name: http1
+        readinessProbe:
+          httpGet:
+            path: /api/actuator/health/readiness
+          periodSeconds: 10
+          timeoutSeconds: 3
+        resources: {{ .Values.resources | toJson }}
+        volumeMounts:
+        - mountPath: /etc/banco
+          name: application-config
+          readOnly: true
+      volumes:
+      - name: application-config
+        secret:
+          secretName: {{ .Values.secrets.applicationName | quote }}
+      imagePullSecrets: {{ .Values.imagePullSecrets | toJson }}
+      containerConcurrency: {{ .Values.knative.containerConcurrency }}
+      timeoutSeconds: {{ .Values.knative.timeoutSeconds }}

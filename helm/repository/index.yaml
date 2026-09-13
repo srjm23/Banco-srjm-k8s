@@ -1,0 +1,37 @@
+apiVersion: v1
+entries:
+  banco-srjm-backend:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-09-13T14:46:14.821305991-03:00"
+    description: Backend Knative do Banco SRJM
+    digest: 7aca488a3af90020de4cf8a397be4c1ce6dd5679200ee77215a0970c17d49af6
+    name: banco-srjm-backend
+    type: application
+    urls:
+    - https://srjm23.github.io/Banco-srjm-k8s/banco-srjm-backend-1.0.0.tgz
+    version: 1.0.0
+  banco-srjm-banco:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-09-13T14:46:14.821679734-03:00"
+    description: PostgreSQL persistente do Banco SRJM com credencial sincronizada
+      do Vault
+    digest: 7fda50c1d6efc8a774ec8f83e6729ed7598a68e1909f68e6131dd24c766d36d0
+    name: banco-srjm-banco
+    type: application
+    urls:
+    - https://srjm23.github.io/Banco-srjm-k8s/banco-srjm-banco-1.0.0.tgz
+    version: 1.0.0
+  banco-srjm-frontend:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2026-09-13T14:46:14.822134361-03:00"
+    description: Frontend Knative do Banco SRJM
+    digest: 0ede610c87418832634532d65a3b04cd3332c1f4ab6df71e3904de1b4bfa7553
+    name: banco-srjm-frontend
+    type: application
+    urls:
+    - https://srjm23.github.io/Banco-srjm-k8s/banco-srjm-frontend-1.0.0.tgz
+    version: 1.0.0
+generated: "2026-09-13T14:46:14.820422649-03:00"

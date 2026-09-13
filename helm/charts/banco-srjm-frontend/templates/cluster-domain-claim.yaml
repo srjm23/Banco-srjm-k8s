@@ -1,0 +1,10 @@
+{{- if and .Values.domain.enabled .Values.domain.createClaim }}
+apiVersion: networking.internal.knative.dev/v1alpha1
+kind: ClusterDomainClaim
+metadata:
+  name: {{ .Values.domain.host | quote }}
+  annotations:
+    argocd.argoproj.io/sync-wave: '-1'
+spec:
+  namespace: {{ .Release.Namespace }}
+{{- end }}

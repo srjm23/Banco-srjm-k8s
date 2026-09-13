@@ -1,0 +1,298 @@
+{
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "digest": {
+          "type": "string"
+        },
+        "pullPolicy": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "repository",
+        "tag",
+        "digest",
+        "pullPolicy"
+      ]
+    },
+    "imagePullSecrets": {
+      "type": "array"
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "cpu",
+            "memory"
+          ]
+        },
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "cpu",
+            "memory"
+          ]
+        }
+      }
+    },
+    "knative": {
+      "type": "object",
+      "properties": {
+        "ingressClass": {
+          "type": "string"
+        },
+        "minScale": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxScale": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "containerConcurrency": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "traffic": {
+          "type": "array"
+        }
+      },
+      "required": [
+        "ingressClass",
+        "minScale",
+        "maxScale",
+        "containerConcurrency",
+        "timeoutSeconds",
+        "traffic"
+      ]
+    },
+    "configVersion": {
+      "type": "string"
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "MAIL_HOST": {
+          "type": "string"
+        },
+        "MAIL_PORT": {
+          "type": "string"
+        },
+        "MAIL_FROM": {
+          "type": "string"
+        },
+        "MAIL_SMTP_AUTH": {
+          "type": "string"
+        },
+        "MAIL_STARTTLS": {
+          "type": "string"
+        },
+        "FRONTEND_URL": {
+          "type": "string"
+        },
+        "SPRING_PROFILES_ACTIVE": {
+          "type": "string"
+        },
+        "OTEL_SERVICE_NAME": {
+          "type": "string"
+        },
+        "OTEL_TRACES_SAMPLER_PROBABILITY": {
+          "type": "string"
+        },
+        "OTEL_TRACES_EXPORTER": {
+          "type": "string"
+        },
+        "OTEL_METRICS_EXPORTER": {
+          "type": "string"
+        },
+        "OTEL_LOGS_EXPORTER": {
+          "type": "string"
+        },
+        "SPRING_CONFIG_ADDITIONAL_LOCATION": {
+          "type": "string"
+        },
+        "SERVER_FORWARD_HEADERS_STRATEGY": {
+          "type": "string"
+        },
+        "MANAGEMENT_TRACING_ENABLED": {
+          "type": "string"
+        }
+      }
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "configMapName": {
+          "type": "string"
+        }
+      }
+    },
+    "secrets": {
+      "type": "object",
+      "properties": {
+        "backendName": {
+          "type": "string"
+        },
+        "postgresName": {
+          "type": "string"
+        },
+        "applicationName": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "backendName",
+        "postgresName",
+        "applicationName"
+      ]
+    },
+    "externalSecrets": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "storeName": {
+          "type": "string"
+        },
+        "refreshInterval": {
+          "type": "string"
+        },
+        "pathPrefix": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "storeName",
+        "refreshInterval",
+        "pathPrefix"
+      ]
+    },
+    "flywayConnectRetries": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "mailpit": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            },
+            "digest": {
+              "type": "string"
+            },
+            "pullPolicy": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "repository",
+            "tag",
+            "digest",
+            "pullPolicy"
+          ]
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "cpu",
+                "memory"
+              ]
+            },
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "cpu",
+                "memory"
+              ]
+            }
+          },
+          "required": [
+            "requests",
+            "limits"
+          ]
+        }
+      },
+      "required": [
+        "enabled",
+        "image",
+        "resources"
+      ]
+    }
+  },
+  "required": [
+    "image",
+    "imagePullSecrets",
+    "resources",
+    "knative",
+    "configVersion",
+    "config",
+    "database",
+    "secrets",
+    "externalSecrets",
+    "flywayConnectRetries",
+    "mailpit"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false
+}

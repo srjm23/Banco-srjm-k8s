@@ -1,0 +1,35 @@
+image:
+  repository: srjm2024/banco-srjm-postgres
+  tag: latest
+  digest: ''
+  pullPolicy: Always
+imagePullSecrets: []
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: '1'
+    memory: 1Gi
+database:
+  POSTGRES_DB: banco_programacao
+  POSTGRES_USER: banco_user
+  PGDATA: /var/lib/postgresql/data/pgdata
+persistence:
+  storageClassName: banco-ebs-gp3
+  size: 20Gi
+secrets:
+  postgresName: postgres-secret
+externalSecrets:
+  enabled: true
+  storeName: vault-banco
+  refreshInterval: 1m
+  pathPrefix: ''
+storageClass:
+  create: false
+  name: banco-ebs-gp3
+  provisioner: ebs.csi.aws.com
+  parameters:
+    type: gp3
+    encrypted: 'true'
+    fsType: ext4

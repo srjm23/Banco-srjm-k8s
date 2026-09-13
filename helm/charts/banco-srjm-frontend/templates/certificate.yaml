@@ -1,0 +1,14 @@
+{{- if and .Values.domain.enabled .Values.tls.createCertificate }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: banco-srjm
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName: {{ .Values.tls.secretName | quote }}
+  dnsNames:
+  - {{ .Values.domain.host | quote }}
+  issuerRef: {{ .Values.tls.issuerRef | toJson }}
+  privateKey:
+    rotationPolicy: Always
+{{- end }}
