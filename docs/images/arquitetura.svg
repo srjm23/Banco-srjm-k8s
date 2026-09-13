@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="1020" viewBox="0 0 860 1020" role="img" aria-labelledby="title desc">
+<title id="title">Arquitetura do Banco SRJM</title>
+<desc id="desc">Cloudflare encaminha HTTPS pelo Classic ELB ao Istio e ao frontend Knative. O frontend acessa o backend pelo gateway local. O backend acessa PostgreSQL. External Secrets consulta Vault e sincroniza credenciais para a aplicação e cert-manager.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#475569"/></marker></defs>
+<rect width="860" height="1020" rx="12" fill="#f8fafc"/>
+<g font-family="Arial, sans-serif" fill="#0f172a">
+<text x="205" y="34" text-anchor="middle" font-size="21">Acesso à aplicação</text>
+<text x="650" y="34" text-anchor="middle" font-size="21">Credenciais e certificados</text>
+<rect x="50" y="60" width="310" height="65" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+<text x="205" y="87" text-anchor="middle" font-size="17">Navegador</text>
+<text x="205" y="108" text-anchor="middle" font-size="13">Domínio público</text>
+<rect x="50" y="175" width="310" height="65" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+<text x="205" y="202" text-anchor="middle" font-size="17">Cloudflare</text>
+<text x="205" y="223" text-anchor="middle" font-size="13">Proxy HTTPS</text>
+<rect x="50" y="290" width="310" height="65" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+<text x="205" y="317" text-anchor="middle" font-size="17">Classic ELB</text>
+<text x="205" y="338" text-anchor="middle" font-size="13">Transporte TCP 443</text>
+<rect x="50" y="405" width="310" height="65" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+<text x="205" y="432" text-anchor="middle" font-size="17">Istio Gateway</text>
+<text x="205" y="453" text-anchor="middle" font-size="13">TLS e VirtualService do Knative</text>
+<rect x="50" y="520" width="310" height="65" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+<text x="205" y="547" text-anchor="middle" font-size="17">Frontend Nginx</text>
+<text x="205" y="568" text-anchor="middle" font-size="13">Service Knative</text>
+<rect x="50" y="635" width="310" height="65" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+<text x="205" y="662" text-anchor="middle" font-size="17">Gateway local</text>
+<text x="205" y="683" text-anchor="middle" font-size="13">Rota interna do Knative</text>
+<rect x="50" y="750" width="310" height="65" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+<text x="205" y="777" text-anchor="middle" font-size="17">Backend Spring Boot</text>
+<text x="205" y="798" text-anchor="middle" font-size="13">Service Knative / cluster-local</text>
+<rect x="50" y="865" width="310" height="65" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+<text x="205" y="892" text-anchor="middle" font-size="17">PostgreSQL</text>
+<text x="205" y="913" text-anchor="middle" font-size="13">StatefulSet / PVC EBS / TCP 5432</text>
+<path d="M205 125 V175" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="278" y="154" text-anchor="middle" font-size="12">HTTPS</text>
+<path d="M205 240 V290" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="278" y="269" text-anchor="middle" font-size="12">HTTPS para a origem</text>
+<path d="M205 355 V405" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="278" y="384" text-anchor="middle" font-size="12">TCP via NodePort</text>
+<path d="M205 470 V520" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="278" y="499" text-anchor="middle" font-size="12">Rota para a revisão</text>
+<path d="M205 585 V635" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="278" y="614" text-anchor="middle" font-size="12">HTTP /api/</text>
+<path d="M205 700 V750" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="278" y="729" text-anchor="middle" font-size="12">HTTP interno</text>
+<path d="M205 815 V865" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="278" y="844" text-anchor="middle" font-size="12">TCP 5432</text>
+<rect x="495" y="60" width="310" height="65" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+<text x="650" y="87" text-anchor="middle" font-size="17">Vault</text>
+<text x="650" y="108" text-anchor="middle" font-size="13">KV v2 / TLS interno / PVC EBS</text>
+<rect x="495" y="205" width="310" height="65" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+<text x="650" y="232" text-anchor="middle" font-size="17">External Secrets</text>
+<text x="650" y="253" text-anchor="middle" font-size="13">Autenticação Kubernetes</text>
+<path d="M650 205 V125" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="730" y="164" text-anchor="middle" font-size="12">Consulta por TLS</text>
+<rect x="495" y="350" width="310" height="65" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+<text x="650" y="377" text-anchor="middle" font-size="17">Secrets Kubernetes</text>
+<text x="650" y="398" text-anchor="middle" font-size="13">Credenciais sincronizadas</text>
+<path d="M650 270 V350" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="714" y="315" text-anchor="middle" font-size="12">Sincronização</text>
+<rect x="495" y="495" width="310" height="65" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+<text x="650" y="522" text-anchor="middle" font-size="17">cert-manager</text>
+<text x="650" y="543" text-anchor="middle" font-size="13">Certificado público / DNS-01</text>
+<path d="M650 415 V495" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="723" y="460" text-anchor="middle" font-size="12">Token Cloudflare</text>
+<path d="M495 527 H425 V207 H360" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="421" y="190" text-anchor="middle" font-size="12">DNS-01 via API</text>
+<path d="M805 415 H830 V782 H360" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 5"/>
+<path d="M830 782 V897 H360" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6 5"/>
+<text x="642" y="744" text-anchor="middle" font-size="13">Secrets consumidos pelo backend</text>
+<text x="642" y="766" text-anchor="middle" font-size="13">e pelo PostgreSQL</text>
+<text x="430" y="986" text-anchor="middle" font-size="13">Linha tracejada: consumo de credenciais. HTTP interno sem mTLS neste perfil.</text>
+</g>
+</svg>
