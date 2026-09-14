@@ -10,6 +10,11 @@ spec:
     targetRevision: 1.0.0
     helm:
       releaseName: frontend
+      valuesObject:
+        image:
+          repository: srjm2024/banco-srjm-frontend
+          tag: latest-1.1.0
+          digest: ""
     chart: banco-srjm-frontend
   destination:
     server: https://kubernetes.default.svc
