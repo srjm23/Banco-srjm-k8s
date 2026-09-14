@@ -1,6 +1,6 @@
-# Prometheus e Kiali — instalação e integração
+# Prometheus, Kiali e Grafana — instalação e integração
 
-Prometheus coleta e armazena métricas. Kiali consulta a API do Prometheus para exibir tráfego e saúde da malha Istio. O fluxo é **proxies Istio → coleta Prometheus → consulta pelo Kiali**.
+Prometheus coleta e armazena métricas. Kiali consulta a API do Prometheus para exibir tráfego e saúde da malha Istio. Grafana permite visualizar métricas em dashboards quando configurado com uma fonte de dados Prometheus. O fluxo é **proxies Istio → coleta Prometheus → consulta pelo Kiali e Grafana**.
 
 Os comandos utilizam o contexto Kubernetes atual, sem variáveis de ambiente. Instale na ordem **Prometheus → Kiali → integração**. Se os componentes já existem, confira suas releases e configurações antes de atualizar.
 
@@ -150,6 +150,73 @@ Selecione os namespaces relevantes e uma janela de tempo com tráfego para visua
 Frontend/backend são Services Knative com injeção de sidecar Istio desabilitada. A telemetria Istio vem principalmente dos gateways; o `queue-proxy` pertence ao Knative. Não espere um grafo completo de todas as chamadas internas ou do PostgreSQL sem instrumentação correspondente.
 
 Prometheus e Kiali não habilitam tracing distribuído automaticamente. Instalar esses componentes também não altera o roteamento da aplicação.
+
+## 9. Instalar o Grafana
+
+O Grafana utiliza o namespace `monitoring`, Service `ClusterIP` e volume persistente de 5 GiB com a StorageClass `banco-ebs-gp3`. O comando reúne a instalação e a configuração de armazenamento utilizadas no projeto:
+
+```bash
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update grafana
+
+helm upgrade --install grafana grafana/grafana \
+  -n monitoring \
+  --create-namespace \
+  --set persistence.enabled=true \
+  --set persistence.storageClassName=banco-ebs-gp3 \
+  --set persistence.size=5Gi \
+  --set service.type=ClusterIP
+```
+
+Para uma release existente, o procedimento de atualização utilizado foi:
+
+```bash
+helm upgrade grafana grafana/grafana \
+  -n monitoring \
+  --reuse-values \
+  --set persistence.enabled=true \
+  --set persistence.storageClassName=banco-ebs-gp3 \
+  --set persistence.size=5Gi
+```
+
+A StorageClass de um PVC existente não pode ser alterada por esse upgrade. Se o PVC já foi criado com outra classe, será necessário planejar a migração dos dados.
+
+```bash
+kubectl -n monitoring get pods,svc,pvc
+kubectl -n monitoring port-forward svc/grafana 3000:80
+```
+
+Abra **http://localhost:3000**. Para consultar as credenciais geradas pelo chart padrão, execute em outro terminal:
+
+```bash
+kubectl -n monitoring get secret grafana -o jsonpath='{.data.admin-user}' | base64 --decode; echo
+kubectl -n monitoring get secret grafana -o jsonpath='{.data.admin-password}' | base64 --decode; echo
+```
+
+No Grafana, adicione uma fonte de dados do tipo **Prometheus**, informe `http://prometheus-server.monitoring.svc.cluster.local:80` e clique em **Save & test**. A instalação acima não provisiona automaticamente essa fonte nem os dashboards do Istio.
+
+## 10. Integrar o Grafana ao Kiali
+
+```bash
+helm upgrade kiali-operator kiali/kiali-operator \
+  -n kiali-operator \
+  --version 2.31.0 \
+  --reuse-values \
+  --set cr.spec.external_services.grafana.enabled=true \
+  --set-string cr.spec.external_services.grafana.internal_url=http://grafana.monitoring.svc.cluster.local
+```
+
+`internal_url` é o endereço utilizado pelo Kiali dentro do cluster. Essa configuração preserva os values existentes, incluindo a integração com o Prometheus, mas não configura a fonte de dados do Grafana nem importa dashboards. Se houver autenticação na API do Grafana, configure também as credenciais de integração no Kiali.
+
+Para links do Kiali abrirem o Grafana no navegador, configure `external_url` com um endereço acessível pelo usuário. No acesso local, mantenha o port-forward do Grafana ativo e execute:
+
+```bash
+helm upgrade kiali-operator kiali/kiali-operator \
+  -n kiali-operator \
+  --version 2.31.0 \
+  --reuse-values \
+  --set-string cr.spec.external_services.grafana.external_url=http://localhost:3000
+```
 
 ## Referências
 

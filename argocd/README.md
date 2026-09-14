@@ -1,6 +1,8 @@
 # Instalar a aplicação pelo Argo CD com Helm
 
-As três Applications utilizam os charts publicados em `https://srjm23.github.io/Banco-srjm-k8s/`, com sincronização manual e destino no próprio cluster do Argo CD, namespace `banco-srjm`.
+O Application pai [banco-srjm-apps](root-application.yaml) acompanha a pasta `argocd/applications` na branch `main` do GitHub e sincroniza automaticamente os Applications filhos. Frontend e backend possuem sincronização automática com `prune` e `selfHeal`; o banco mantém sincronização manual.
+
+Os três Applications filhos utilizam os charts publicados em `https://srjm23.github.io/Banco-srjm-k8s/`, com destino no próprio cluster do Argo CD, namespace `banco-srjm`. O pai fica fora da pasta monitorada para não gerenciar a si mesmo. A remoção de Applications pelo pai não é automática (`prune` desabilitado).
 
 | Application | Chart | Versão |
 | --- | --- | --- |
@@ -16,15 +18,22 @@ Execute os comandos na raiz do projeto, usando o contexto Kubernetes atual. O do
 
 **Se a aplicação já foi instalada pelo Helm CLI:** o Argo passará a gerenciar os mesmos recursos. Preserve os valores usados na instalação anterior, revise os diffs e não execute `helm uninstall`. Após a adoção, atualize pelo Argo, sem aplicar os mesmos recursos por Helm CLI ou Kustomize. Não utilize Prune, Force ou Replace na primeira sincronização; preserve o PostgreSQL e seu PVC.
 
-## 1. Criar as Applications
+## 1. Ativar o App of Apps
+
+Publique primeiro os arquivos no GitHub, pois o pai consulta o conteúdo remoto:
 
 ```bash
-kubectl apply -f argocd/applications/banco.yaml
-kubectl apply -f argocd/applications/backend.yaml
-kubectl apply -f argocd/applications/frontend.yaml
+git add argocd/root-application.yaml argocd/applications/frontend.yaml argocd/applications/backend.yaml argocd/README.md
+git commit -m "Configura App of Apps e sincronizacao automatica"
+git push origin main
+
+kubectl apply -f argocd/root-application.yaml
+kubectl -n argocd get applications
 ```
 
-Esses comandos cadastram as Applications. Os recursos da aplicação serão aplicados durante a sincronização.
+O apply do pai é necessário apenas na ativação inicial ou quando sua própria configuração mudar. Depois, alterações nos YAML dos filhos publicadas na branch `main` são reconciliadas automaticamente. Os nomes existentes são preservados. O pai atualiza o Application do banco, mas a sincronização dos recursos do banco continua manual.
+
+Frontend e backend podem começar a sincronizar assim que forem cadastrados; o pai não garante a prontidão do banco antes deles. Em um cluster novo, prepare o banco conforme a etapa 3 e acompanhe a recuperação dos serviços.
 
 ## 2. Acessar o Argo CD
 
@@ -61,7 +70,7 @@ Avance somente quando o Secret e o PostgreSQL estiverem prontos. O StatefulSet m
 
 ## 4. Sincronizar o backend
 
-Abra **backend**, confira o diff e execute **Sync → Synchronize**.
+O backend sincroniza automaticamente. Abra **backend** para acompanhar o diff e o resultado da sincronização.
 
 ```bash
 kubectl -n banco-srjm wait \
@@ -77,7 +86,7 @@ kubectl -n banco-srjm wait \
 
 ## 5. Sincronizar o frontend
 
-Abra **frontend**, confira o diff e execute **Sync → Synchronize**.
+O frontend sincroniza automaticamente. Abra **frontend** para acompanhar o diff e o resultado da sincronização.
 
 ```bash
 kubectl -n banco-srjm wait \
@@ -88,7 +97,7 @@ kubectl -n banco-srjm wait \
   --timeout=600s
 ```
 
-A ordem é **banco → backend → frontend**. As sync-waves ordenam recursos dentro de uma Application; não ordenam essas três Applications independentes. Se alguma etapa falhar, resolva antes de continuar.
+A ordem de validação é **banco → backend → frontend**. O App of Apps não estabelece uma dependência de prontidão entre esses serviços. Se alguma etapa falhar, resolva antes de continuar a validação.
 
 ## 6. Validar
 
@@ -107,4 +116,24 @@ Confira sincronização das Applications, condições Ready dos recursos, PVC Bo
 
 O Argo utiliza Helm para renderizar os charts e gerencia diretamente os recursos Kubernetes. Não cria novas releases em `helm list`. Releases antigas do Helm CLI podem continuar listadas, mas não devem ser usadas para atualizar, reverter ou remover os recursos após a adoção. [Helm no Argo CD](https://argo-cd.readthedocs.io/en/stable/user-guide/helm/).
 
-Para atualizar a aplicação, publique uma nova versão do chart, altere `spec.source.targetRevision` na Application, aplique o arquivo atualizado e sincronize. Para alterar o domínio, configure `spec.source.helm.parameters` com `domain.host` no frontend e `config.FRONTEND_URL` no backend, além de revisar o emissor DNS-01 e a Cloudflare. Consulte os [values dos charts](../helm/README.md).
+Para atualizar apenas a imagem, altere `spec.source.helm.valuesObject.image` no Application correspondente e publique no GitHub. Exemplo do frontend:
+
+```yaml
+helm:
+  releaseName: frontend
+  valuesObject:
+    image:
+      repository: srjm2024/banco-srjm-frontend
+      tag: latest-1.1.0
+      digest: ""
+```
+
+```bash
+git add argocd/applications/frontend.yaml
+git commit -m "Atualiza imagem do frontend"
+git push origin main
+```
+
+O pai detecta a alteração no Git e atualiza o filho; o filho renderiza o Helm com os novos values e sincroniza o Service Knative, criando uma revisão quando o template muda. Não é necessário outro apply nem publicar um novo chart para alterar apenas a imagem pelos values. A detecção depende do intervalo de reconciliação do Argo CD; não é instantânea. Sobrescrever uma tag no registry não altera o Git nem dispara esse fluxo.
+
+Para atualizar o chart, publique uma nova versão e altere `spec.source.targetRevision` no filho pelo Git. O banco ainda exige Sync manual. Para alterar o domínio, configure os values `domain.host` no frontend e `config.FRONTEND_URL` no backend, além de revisar o emissor DNS-01 e a Cloudflare. Consulte os [values dos charts](../helm/README.md).
