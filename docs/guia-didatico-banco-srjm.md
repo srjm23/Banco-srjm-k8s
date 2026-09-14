@@ -332,8 +332,6 @@ Cada store usa uma ServiceAccount e uma política próprias. O termo Cluster sig
 | backend-secret | Variáveis sensíveis do backend |
 | backend-application | Arquivo application.yaml do backend |
 | cloudflare-api-token-secret | cert-manager, no namespace cert-manager |
-| frontend-secret | Placeholder preservado, sem uso atual pelo workload |
-| mailpit-secret | Placeholder preservado, sem uso atual pelo workload |
 
 A consulta é configurada a cada minuto; disponibilidade, erros e reconciliação podem aumentar o tempo efetivo. Orphan evita vínculo de propriedade de exclusão com o Secret, e Retain conserva o Secret quando os dados remotos são removidos. A aplicação continua dependendo de permissões adequadas sobre os Secrets Kubernetes.
 
@@ -402,7 +400,7 @@ Essas ferramentas atuam em etapas diferentes. YAML é o formato dos objetos. Kus
 
 | Artefato | Uso |
 | --- | --- |
-| k8s/ | Alternativa Kustomize preservada, com 36 recursos declarados |
+| k8s/ | Alternativa Kustomize preservada, com 34 recursos declarados |
 | helm/charts/ | Três charts independentes da aplicação |
 | helm/repository/ | Pacotes .tgz e index.yaml |
 | build/helm-rendered/ | Recursos renderizados, um por arquivo |
@@ -564,7 +562,7 @@ Este PDF foi consolidado a partir das explicações e dos arquivos do projeto, s
 - Guia técnico local: docs/arquitetura-e-instalacao.md
 - Instalação por Helm/Argo: helm/README.md
 - Operação do Vault: docs/vault-external-secrets.md
-- Ordem e selectors: docs/estrutura-kustomize.md
+- Ordem e selectors: k8s/README.md
 - TLS e Cloudflare: docs/istio-letsencrypt.md
 - AWS: https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html
 - Istio: https://istio.io/latest/docs/setup/install/helm/

@@ -1,5 +1,7 @@
 # Arquitetura e instalação do Banco SRJM
 
+> Registro histórico: este documento descreve uma etapa anterior à limpeza atual. O inventário vigente está em [k8s/README.md](../k8s/README.md); o fluxo atual de Vault está em [Vault CLI](vault-cli.md).
+
 > Atualização: foram preparados três charts independentes para banco, backend e frontend, preservando `k8s/`. Os pacotes, índice e instruções de adoção estão em [Helm e Argo CD](../helm/README.md). A consolidação abaixo descreve a etapa anterior.
 
 Estado consultado em 11/09/2026, contexto Kubernetes `eks-new`, cluster AWS `srjm-eks-new`, região Ohio (`us-east-2`). Esta documentação distingue os recursos declarados no repositório dos componentes instalados pelos charts e dos recursos que os controllers geram automaticamente.
@@ -221,7 +223,7 @@ Além dos 36 objetos declarados, os controllers criam outros necessários: pods 
 
 ## Inventário dos YAMLs
 
-Todos os arquivos abaixo são relativos a `k8s/`. Cada um contém um recurso. Os Kustomizations apenas os incluem na [ordem FIFO](estrutura-kustomize.md).
+Todos os arquivos abaixo são relativos a `k8s/`. Cada um contém um recurso. Os Kustomizations apenas os incluem na [ordem FIFO](../k8s/README.md).
 
 | Manifesto | Recurso | Função |
 | --- | --- | --- |
@@ -247,8 +249,6 @@ Todos os arquivos abaixo são relativos a `k8s/`. Cada um contém um recurso. Os
 | [external-secrets/postgres-secret.yaml](../k8s/external-secrets/postgres-secret.yaml) | ExternalSecret | Sincroniza a senha compartilhada por PostgreSQL e backend. |
 | [external-secrets/backend-secret.yaml](../k8s/external-secrets/backend-secret.yaml) | ExternalSecret | Sincroniza variáveis sensíveis do backend. |
 | [external-secrets/backend-application.yaml](../k8s/external-secrets/backend-application.yaml) | ExternalSecret | Sincroniza o arquivo application.yaml montado pelo backend. |
-| [external-secrets/frontend-secret.yaml](../k8s/external-secrets/frontend-secret.yaml) | ExternalSecret | Preserva o Secret placeholder do frontend, sem uso atual pelo workload. |
-| [external-secrets/mailpit-secret.yaml](../k8s/external-secrets/mailpit-secret.yaml) | ExternalSecret | Preserva o Secret placeholder do Mailpit, sem uso atual pelo workload. |
 | [external-secrets/cloudflare-api-token-secret.yaml](../k8s/external-secrets/cloudflare-api-token-secret.yaml) | ExternalSecret | Sincroniza o token DNS-01 no namespace cert-manager. |
 | [letsencrypt-production.yaml](../k8s/letsencrypt-production.yaml) | ClusterIssuer | ClusterIssuer ACME com solver DNS-01 Cloudflare. |
 | [svc-postgres.yaml](../k8s/svc-postgres.yaml) | Service | Service para clientes acessarem PostgreSQL na porta 5432. |

@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTEXT = 'eks-new'
 PRIVATE = ROOT / '.secrets'
 INIT = PRIVATE / 'vault-init.json'
-SOURCES = [('banco-srjm', name) for name in ('postgres-secret', 'backend-secret', 'backend-application', 'frontend-secret', 'mailpit-secret')]
+SOURCES = [('banco-srjm', name) for name in ('postgres-secret', 'backend-secret', 'backend-application')]
 SOURCES.append(('cert-manager', 'cloudflare-api-token-secret'))
 
 

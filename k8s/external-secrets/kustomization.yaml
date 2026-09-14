@@ -11,6 +11,4 @@ resources:
 - postgres-secret.yaml
 - backend-secret.yaml
 - backend-application.yaml
-- frontend-secret.yaml
-- mailpit-secret.yaml
 - cloudflare-api-token-secret.yaml

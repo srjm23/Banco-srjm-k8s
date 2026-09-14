@@ -1,184 +1,112 @@
-# Knative no Banco SRJM
+# Manifestos Kubernetes — função e importância
 
-Esta pasta contém os manifestos da aplicação usando **Knative Serving** para
-frontend e backend. O Istio recebe e encaminha as requisições, enquanto o
-PostgreSQL roda como um StatefulSet do Kubernetes, com armazenamento persistente.
+Esta pasta contém **34 recursos e quatro Kustomizations**, com um recurso por arquivo YAML. Frontend/backend usam Knative; PostgreSQL usa StatefulSet. Os manifestos permanecem como alternativa Kustomize e referência dos charts Helm.
 
-Este documento descreve a configuração dos manifestos. A existência dos arquivos
-não confirma que os recursos estejam aplicados ou prontos no cluster.
+**Use um gerenciador por recurso.** Se banco, backend e frontend são gerenciados pelo Argo CD/Helm, não aplique a base inteira com `kubectl apply -k k8s`. Os charts já incluem os 16 recursos da aplicação; plataforma, stores e emissor são dependências compartilhadas.
 
-## O que o Knative gerencia
+## Aplicação
 
-O Knative Serving executa aplicações em containers sobre Kubernetes e gerencia
-suas versões, rotas e escala automática conforme a demanda.
-
-| Recurso Knative | Função |
-| --- | --- |
-| Service | Declara a aplicação e coordena seu ciclo de vida |
-| Configuration | Define o template de execução da aplicação |
-| Revision | Representa uma versão imutável do container e da configuração |
-| Route | Distribui requisições entre as revisões |
-
-Uma alteração no template da aplicação gera uma nova revisão. É possível
-distribuir tráfego entre revisões para fazer uma atualização gradual.
-
-O Knative gerencia recursos Kubernetes para executar essas revisões. Nos pods,
-o container `queue-proxy` participa do encaminhamento, das métricas e do controle
-de concorrência. O componente Activator pode aguardar requisições enquanto uma
-revisão inicia e ajudar a absorver picos; ele não participa obrigatoriamente de
-toda requisição.
-
-## Service Knative e Service Kubernetes
-
-Apesar de ambos usarem `kind: Service`, são recursos diferentes:
-
-| API | Responsabilidade |
-| --- | --- |
-| `serving.knative.dev/v1` | Gerenciar uma aplicação, suas revisões, rotas e escala |
-| `v1` | Fornecer acesso de rede a workloads Kubernetes |
-
-[backend.yaml](backend.yaml) e [frontend.yaml](frontend.yaml) declaram Services
-Knative. Seus Services internos e Deployments de revisão são gerenciados pelo Knative. Os manifests convencionais que duplicavam esses recursos foram removidos do repositório. A configuração aplicada está em [kustomization.yaml](kustomization.yaml).
-
-## Fluxo das requisições
-
-Fluxo lógico simplificado, após provisionar a entrada pública e configurar o DNS:
-
-```mermaid
-flowchart TD
-    A[Usuário] --> B[Proxy HTTPS da Cloudflare]
-    B --> C[Classic ELB público AWS]
-    C --> D[Service istio-ingress-classic e gateway Istio]
-    D --> E[Roteamento Knative do frontend]
-    E --> F[Frontend Nginx]
-    F -->|Arquivos da interface| G[Resposta ao navegador]
-    F -->|/api/| H[Roteamento interno Knative do backend]
-    H --> I[Backend Spring Boot]
-    I --> J[Service postgres na porta 5432]
-    J --> K[PostgreSQL StatefulSet e volume persistente]
-```
-
-Em [frontend-nginx.yaml](frontend-nginx.yaml), o Nginx entrega a interface e
-encaminha `/api/` para:
-
-```text
-http://backend.banco-srjm.svc.cluster.local:80
-```
-
-O cabeçalho `Host` também é definido como
-`backend.banco-srjm.svc.cluster.local` para identificar a rota interna.
-A porta 80 é a entrada de rede interna; o processo da aplicação escuta na porta
-8080 do container.
-
-O backend possui o label `networking.knative.dev/visibility: cluster-local`,
-configurando sua rota Knative para acesso interno ao cluster. O navegador acessa
-a API pelo frontend, que faz o encaminhamento.
-
-## Escala das aplicações
-
-Os manifestos desta pasta definem:
-
-| Configuração | Frontend | Backend |
+| Manifesto | Recurso | Função e importância |
 | --- | --- | --- |
-| `autoscaling.knative.dev/min-scale` | 1 | 1 |
-| `autoscaling.knative.dev/max-scale` | 3 | 3 |
-| `containerConcurrency` | 80 | 20 |
-| Porta do container | 8080 | 8080 |
-| `timeoutSeconds` | 300 | 300 |
+| [namespace.yaml](namespace.yaml) | Namespace | Cria `banco-srjm` e desabilita a injeção automática de sidecar Istio. Organiza os recursos da aplicação. |
+| [backend.yaml](backend.yaml) | Service Knative | Executa a API Spring Boot, com escala, revisões, probes e consumo de Secrets/ConfigMaps. `cluster-local` mantém o backend interno. |
+| [backend-config.yaml](backend-config.yaml) | ConfigMap | Armazena parâmetros comuns do backend, como SMTP, URL do frontend e opções Spring, separados das credenciais. |
+| [frontend.yaml](frontend.yaml) | Service Knative | Executa o frontend Nginx com recursos, escala e configuração montada. Knative gerencia as revisões e a rede. |
+| [frontend-nginx.yaml](frontend-nginx.yaml) | ConfigMap | Configura o Nginx para servir a interface e encaminhar `/api/` ao backend pela rede interna. |
+| [mailpit.yaml](mailpit.yaml) | Deployment | Executa o capturador de e-mails de teste. Não entrega mensagens a destinatários externos. |
+| [svc-mailpit.yaml](svc-mailpit.yaml) | Service | Fornece endereço interno estável para SMTP `1025` e interface web `8025` do Mailpit. |
 
-Os limites de escala são por revisão. Com mínimo 1, as revisões ativas não
-escalam a zero por inatividade. Isso evita a espera de inicialização após um
-período sem tráfego, mas mantém recursos alocados.
+Os Services de frontend/backend pertencem à API `serving.knative.dev/v1`: controlam execução, revisões e roteamento. Os arquivos `svc-*.yaml` são Services Kubernetes comuns, que fornecem acesso de rede aos pods.
 
-`containerConcurrency: 20` limita a 20 requisições simultâneas por réplica do
-backend. Não significa 20 usuários nem 20 requisições por segundo. O autoscaler
-usa métricas e metas de utilização e pode escalar antes de alcançar esse limite.
-O Knative ajusta pods; a capacidade dos nodes do EKS depende da configuração de
-infraestrutura do cluster.
+## PostgreSQL e armazenamento
 
-O timeout Knative é apenas um dos limites no caminho: o Nginx deste projeto
-também define `proxy_read_timeout 60s` para as chamadas à API.
+| Manifesto | Recurso | Função e importância |
+| --- | --- | --- |
+| [postgres.yaml](postgres.yaml) | StatefulSet | Executa uma instância PostgreSQL e solicita PVC de 20 GiB por `volumeClaimTemplates`. Preserva identidade e armazenamento entre recriações do pod. |
+| [postgres-config.yaml](postgres-config.yaml) | ConfigMap | Define banco, usuário e diretório de dados. A senha vem de `postgres-secret`. |
+| [svc-postgres.yaml](svc-postgres.yaml) | Service | Disponibiliza o endpoint interno `postgres:5432` para os clientes do banco. |
+| [svc-postgres-headless.yaml](svc-postgres-headless.yaml) | Service headless | Com `clusterIP: None`, fornece identidade DNS aos pods do StatefulSet, sem IP virtual de Service. |
+| [storageclass.yaml](storageclass.yaml) | StorageClass | Define provisionamento EBS gp3 criptografado via CSI, expansão, `WaitForFirstConsumer` e retenção `Retain`. É utilizada por PostgreSQL e Vault. |
 
-## Domínio e HTTPS
+`StorageClass` define como provisionar; `PVC` solicita armazenamento; `PV/EBS` representa o volume provisionado. Não há YAML separado de PVC porque o StatefulSet o solicita. Retenção não substitui backup, e alterar o Secret não altera a senha de um banco já inicializado.
 
-[certificate.yaml](certificate.yaml), [cluster-domain-claim.yaml](cluster-domain-claim.yaml) e [domain-mapping.yaml](domain-mapping.yaml) configura:
+## Domínio e certificado público
 
-- `Certificate`: solicita o certificado pelo cert-manager usando o ClusterIssuer
-  `letsencrypt-production`.
-- `ClusterDomainClaim`: associa o domínio ao namespace `banco-srjm`.
-- `DomainMapping`: direciona `bancosrjm.geradorqrcode-srjm.uk` ao Service Knative
-  `frontend` e referencia o Secret TLS `banco-srjm-tls`.
+| Manifesto | Recurso | Função e importância |
+| --- | --- | --- |
+| [letsencrypt-production.yaml](letsencrypt-production.yaml) | ClusterIssuer | Configura conta ACME, e-mail e autenticação DNS-01 Cloudflare. Define como emitir os certificados. |
+| [certificate.yaml](certificate.yaml) | Certificate | Solicita o certificado do domínio e o Secret TLS `banco-srjm-tls`; cert-manager cuida da emissão e renovação. |
+| [cluster-domain-claim.yaml](cluster-domain-claim.yaml) | ClusterDomainClaim | Reserva o uso do domínio pelo namespace `banco-srjm` no Knative. Não cria registros DNS. |
+| [domain-mapping.yaml](domain-mapping.yaml) | DomainMapping | Associa o domínio ao frontend, referencia o Secret TLS e configura redirecionamento HTTP para HTTPS. |
 
-O DNS público deve apontar para o endereço externo provisionado para o ingress.
-Um Service com endereço externo `<pending>` ainda não fornece o destino para
-esse registro DNS. A configuração do domínio e a emissão do certificado devem
-ser verificadas separadamente no cluster.
+O CNAME é configurado separadamente na Cloudflare, apontando para o Classic ELB. O token DNS-01 serve para criar/remover os TXT de validação, não para encaminhar tráfego.
 
-## Istio e Classic ELB
+## `platform/` — gateway e Knative
 
-O gateway Istio é separado das aplicações Knative. O manifesto
-[istio-ingress-classic.yaml](platform/istio-ingress-classic.yaml) expõe seus pods por
-Classic ELB, com descoberta automática das subnets públicas. Ele é incluído por `platform/kustomization.yaml` e pelo Kustomization principal,
-após configurar o controller conforme o
-[guia AWS](../docs/istio-aws-classic.md).
+| Manifesto | Recurso | Função e importância |
+| --- | --- | --- |
+| [istio-ingress-classic.yaml](platform/istio-ingress-classic.yaml) | Service LoadBalancer | Expõe os pods do gateway por TCP 80/443. Em EKS com suporte legado, solicita o Classic ELB sem classe ou anotação NLB. |
+| [knative-local-gateway.yaml](platform/knative-local-gateway.yaml) | Service ClusterIP | Dá acesso ao gateway das rotas Knative internas, usado no caminho do frontend ao backend. |
+| [knative-serving.yaml](platform/knative-serving.yaml) | KnativeServing | Instrui o Operator a reconciliar Serving/net-istio e configura os gateways externo e local. |
+| [kustomization.yaml](platform/kustomization.yaml) | Kustomization | Agrupa os três recursos na ordem de envio. |
 
-O Service usa o namespace `istio-ingress` e o selector `istio: ingress` junto
-com `app: istio-ingress`. O recurso Gateway de roteamento não cria o ELB por si só.
-No fluxo Knative, o domínio é declarado no DomainMapping. Gateways e VirtualServices são reconciliados pela integração Knative/Istio; não há manifests manuais concorrentes.
+O provedor AWS legado de Services cria o Classic ELB; o AWS Load Balancer Controller não cria Classic. O TLS termina no Istio. Os selectors dos Services e gateways são `app: istio-ingress` e `istio: ingress`; os Services ficam no namespace dos pods, `istio-ingress`.
 
-## PostgreSQL
+Knative gera as rotas Istio, Deployments e Services de suas revisões. Não copie esses objetos gerados como manifests adicionais.
 
-O banco permanece fora do Knative e usa [postgres.yaml](postgres.yaml), com
-StatefulSet e volume persistente. Os dois Services Kubernetes devem ser mantidos:
+## `external-secrets/` — credenciais
 
-| Manifesto | Função |
-| --- | --- |
-| [svc-postgres.yaml](svc-postgres.yaml) | Acesso interno ao banco pela porta 5432 |
-| [svc-postgres-headless.yaml](svc-postgres-headless.yaml) | Service headless referenciado pelo StatefulSet para identidade de rede |
+Fluxo: **Vault → External Secrets Operator → Secret Kubernetes → consumidor**. Os YAMLs descrevem caminhos e autenticação; não contêm os valores das credenciais.
 
-O endereço disponível é `postgres.banco-srjm.svc.cluster.local:5432`.
-O backend recebe sua URL de conexão por `DB_URL`, via Secret; essa configuração
-deve apontar para o banco correto. Nenhum desses Services precisa de NLB ou DNS
-público na Cloudflare.
+| Manifesto | Recurso | Função e importância |
+| --- | --- | --- |
+| [vault-ca.yaml](external-secrets/vault-ca.yaml) | ConfigMap | Contém a CA pública para o ESO validar o TLS do Vault. Em outro cluster, obtenha a CA daquela instalação. |
+| [vault-banco-reader.yaml](external-secrets/vault-banco-reader.yaml) | ServiceAccount | Identidade Kubernetes utilizada na leitura das credenciais da aplicação. |
+| [vault-cert-manager-reader.yaml](external-secrets/vault-cert-manager-reader.yaml) | ServiceAccount | Identidade separada para leitura do token Cloudflare. |
+| [cluster-store-banco.yaml](external-secrets/cluster-store-banco.yaml) | ClusterSecretStore | Define conexão TLS e autenticação no Vault, permitindo consumidores em `banco-srjm`. |
+| [cluster-store-cert-manager.yaml](external-secrets/cluster-store-cert-manager.yaml) | ClusterSecretStore | Define conexão com identidade própria e consumidores em `cert-manager`. |
+| [postgres-secret.yaml](external-secrets/postgres-secret.yaml) | ExternalSecret | Sincroniza a senha utilizada pelo PostgreSQL e pelo backend. |
+| [backend-secret.yaml](external-secrets/backend-secret.yaml) | ExternalSecret | Sincroniza variáveis sensíveis da API, incluindo sua URL de conexão. |
+| [backend-application.yaml](external-secrets/backend-application.yaml) | ExternalSecret | Sincroniza `application.yaml`, montado pelo backend em `/etc/banco`. |
+| [cloudflare-api-token-secret.yaml](external-secrets/cloudflare-api-token-secret.yaml) | ExternalSecret | Sincroniza o token DNS-01 no namespace cert-manager. |
+| [kustomization.yaml](external-secrets/kustomization.yaml) | Kustomization | Agrupa CA, identidades, stores e os quatro ExternalSecrets utilizados. |
 
-## Verificação no cluster
+As condições dos stores limitam namespaces; as políticas Vault limitam os caminhos acessíveis. `creationPolicy: Orphan` e `deletionPolicy: Retain` preservam os Secrets nas situações previstas por essas políticas. Atualizar um Secret não recarrega automaticamente variáveis de pods existentes.
 
-Execute os comandos no contexto Kubernetes do cluster desejado:
+Os placeholders `frontend-secret` e `mailpit-secret` foram retirados porque nenhum workload os consome. A limpeza dos arquivos não remove os antigos objetos ou dados do Vault no cluster.
+
+## `vault/` — TLS interno e administração
+
+| Manifesto | Recurso | Função e importância |
+| --- | --- | --- |
+| [namespace.yaml](vault/namespace.yaml) | Namespace | Separa os recursos Vault e desabilita a injeção de sidecar Istio. |
+| [selfsigned-issuer.yaml](vault/selfsigned-issuer.yaml) | Issuer | Inicia a cadeia de confiança emitindo a CA interna autoassinada. |
+| [ca-certificate.yaml](vault/ca-certificate.yaml) | Certificate | Solicita a autoridade certificadora interna, com `isCA: true`. |
+| [ca-issuer.yaml](vault/ca-issuer.yaml) | Issuer | Utiliza a CA interna para assinar o certificado do servidor. |
+| [server-certificate.yaml](vault/server-certificate.yaml) | Certificate | Emite TLS para os nomes DNS internos do Vault e endereços locais declarados. |
+| [admin-serviceaccount.yaml](vault/admin-serviceaccount.yaml) | ServiceAccount | Define a identidade administrativa Kubernetes. As permissões no Vault dependem de role e política configuradas separadamente. |
+| [kustomization.yaml](vault/kustomization.yaml) | Kustomization | Ordena namespace, emissores, certificados e identidade administrativa. |
+
+Essa pasta prepara o Vault; o servidor é instalado pelo chart oficial com `helm/values-vault-eks.yaml`. O perfil atual tem uma réplica e unseal manual. Consulte [configuração pela CLI](../docs/vault-cli.md).
+
+## Kustomize, validação e instalação
+
+O [kustomization.yaml principal](kustomization.yaml) reúne as subpastas e os recursos da aplicação. `sortOptions.order: fifo` preserva a sequência de envio, mas **não espera readiness nem instala controllers**.
+
+Ordem das dependências: EKS/IAM/EBS CSI → cert-manager e Istio → Knative Operator/Serving → Vault/ESO → credenciais e emissor → banco → backend → frontend.
+
+Para conferir a renderização local, sem alterar o cluster:
 
 ```bash
-# Confirmar o contexto antes das consultas
-kubectl config current-context
-
-# Aplicações Knative, URLs e condição Ready
-kubectl -n banco-srjm get ksvc
-
-# Versões, configurações e rotas
-kubectl -n banco-srjm get revisions
-kubectl -n banco-srjm get configurations,routes
-
-# Recursos Kubernetes, incluindo os gerenciados pelo Knative
-kubectl -n banco-srjm get pods,svc
-
-# Domínio e certificado
-kubectl -n banco-srjm get domainmappings,certificates
-
-# Componentes e entrada do Istio
-kubectl -n istio-ingress get deployments,pods,svc
-kubectl -n istio-ingress describe svc istio-ingress-classic
-
-# Obter o hostname do Classic ELB, quando disponível
-kubectl -n istio-ingress get svc istio-ingress-classic \
-  -o jsonpath='{.status.loadBalancer.ingress[0].hostname}{"\n"}'
+kubectl kustomize k8s
+helm lint helm/charts/banco-srjm-banco helm/charts/banco-srjm-backend helm/charts/banco-srjm-frontend --strict
 ```
 
-`kubectl get ksvc` consulta aplicações Knative. `kubectl get svc` consulta
-Services de rede do Kubernetes. Ambos podem existir para a mesma aplicação.
+Com plataforma e credenciais prontas, **somente se optar pela gestão Kustomize**:
 
-## Referências
+```bash
+kubectl apply --dry-run=server -k k8s
+kubectl apply -k k8s
+```
 
-- [Knative Serving: visão geral](https://knative.dev/docs/serving/)
-- [Arquitetura do Knative](https://knative.dev/docs/serving/architecture/)
-- [Autoscaling](https://knative.dev/docs/serving/autoscaling/)
-- [Limites de escala](https://knative.dev/docs/serving/autoscaling/scale-bounds/)
-- [Concorrência](https://knative.dev/docs/serving/autoscaling/concurrency/)
-- [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/how-it-works/)
+Para o fluxo Helm/Argo, use o [README principal](../README.md), [Helm](../helm/README.md) e [Argo CD](../argocd/README.md). O antigo alias `overlays/knative` foi removido; a base Kustomize é `k8s/`.

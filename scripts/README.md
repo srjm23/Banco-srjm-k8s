@@ -44,12 +44,12 @@ Saída: [guia-didatico-banco-srjm.pdf](../docs/guia-didatico-banco-srjm.pdf). O 
 
 **Limitação atual:** `bootstrap-vault.py` fixa `CONTEXT = 'eks-new'` e namespace `banco-srjm`; não recebe `--context` ou os parâmetros do README. Não o execute supondo que utilizará o contexto atual. Para outro cluster, prefira o [procedimento manual parametrizado](../docs/vault-cli.md).
 
-Pré-requisitos: Vault instalado com TLS e armazenamento, cert-manager/ESO disponíveis e seis Secrets iniciais existentes:
+Pré-requisitos: Vault instalado com TLS e armazenamento, cert-manager/ESO disponíveis e quatro Secrets iniciais existentes:
 
-- `banco-srjm/postgres-secret`, `backend-secret`, `backend-application`, `frontend-secret`, `mailpit-secret`.
+- `banco-srjm/postgres-secret`, `backend-secret`, `backend-application`.
 - `cert-manager/cloudflare-api-token-secret`.
 
-O script migra esses Secrets; não inventa credenciais nem as obtém dos charts. Os placeholders frontend/Mailpit são exigidos pelo script histórico, mas não pelo fluxo Helm manual.
+O script migra esses Secrets; não inventa credenciais nem as obtém dos charts. Os placeholders frontend/Mailpit foram removidos por não serem consumidos pelos workloads.
 
 Para uma migração inicial autorizada no contexto `eks-new`:
 
@@ -78,6 +78,6 @@ python3 scripts/bootstrap-vault.py --verify-and-finalize
 
 - `--unseal`: desbloqueia usando o arquivo local de inicialização.
 - `--admin-token`: autentica por Kubernetes e grava token temporário em `.secrets/vault-admin-token`.
-- `--verify-and-finalize`: verifica os seis Secrets e as políticas; revoga root quando ainda presente.
+- `--verify-and-finalize`: verifica os quatro Secrets e as políticas; revoga root quando ainda presente.
 
 Essas opções dependem do estado local criado pelo script. Um Vault inicializado manualmente não possui automaticamente esse arquivo. O script abre port-forward na porta local 18200 e pode modificar recursos/arquivos mesmo nos modos de operação.

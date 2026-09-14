@@ -14,6 +14,7 @@ Frontend Nginx e backend Spring Boot executam como Services Knative. PostgreSQL 
 6. [Instalar banco, backend e frontend](#app)
 7. [Cloudflare e validação](#validacao)
 8. [Argo CD e documentação](#documentacao)
+9. [Instalação Helm no ambiente existente](#instalacao-helm-existente)
 
 <a id="parametros"></a>
 ## 1. Pré-requisitos e parâmetros
@@ -230,3 +231,101 @@ Antes de aplicá-las, configure `spec.source.helm.parameters`: `config.FRONTEND_
 - [Scripts Python: uso opcional e limitações](scripts/README.md).
 - [Manifestos Kustomize preservados](k8s/README.md).
 - [Guia didático em PDF](docs/guia-didatico-banco-srjm.pdf).
+
+<a id="instalacao-helm-existente"></a>
+## 9. Instalação Helm no ambiente existente
+
+Os comandos usam o contexto Kubernetes atual, sem variáveis de ambiente. Reutilizam a plataforma, o Vault, o emissor Let's Encrypt, o token Cloudflare e o Classic ELB existentes. Execute na ordem **banco → backend → frontend**; se algum comando falhar, resolva antes de continuar. Recursos anteriores da aplicação precisam ter sido removidos ou adotados pelo Helm, preservando o PVC e as credenciais do PostgreSQL.
+
+### 1. Atualizar o repositório e conferir dependências
+
+```bash
+helm repo add banco-srjm https://srjm23.github.io/Banco-srjm-k8s/ --force-update
+
+helm repo update banco-srjm
+
+helm search repo banco-srjm --versions
+
+kubectl wait --for=condition=Ready \
+  clustersecretstore/vault-banco \
+  clustersecretstore/vault-cert-manager \
+  clusterissuer/letsencrypt-production \
+  --timeout=180s
+
+kubectl -n banco-srjm get pvc data-postgres-0
+```
+
+O PVC deve estar `Bound`. Ele será reutilizado pelo banco; mantenha a senha e as configurações do banco existente.
+
+### 2. Instalar o PostgreSQL
+
+```bash
+helm upgrade --install banco banco-srjm/banco-srjm-banco \
+  --namespace banco-srjm \
+  --version 1.0.0 \
+  --set externalSecrets.enabled=true \
+  --wait --timeout 10m
+
+kubectl -n banco-srjm wait \
+  --for=condition=Ready externalsecret/postgres-secret \
+  --timeout=180s
+
+kubectl -n banco-srjm rollout status statefulset/postgres \
+  --timeout=300s
+```
+
+### 3. Instalar o backend e o Mailpit
+
+```bash
+helm upgrade --install backend banco-srjm/banco-srjm-backend \
+  --namespace banco-srjm \
+  --version 1.0.0 \
+  --set externalSecrets.enabled=true \
+  --set-string config.FRONTEND_URL=https://bancosrjm.geradorqrcode-srjm.uk/ \
+  --wait --timeout 10m
+
+kubectl -n banco-srjm wait \
+  --for=condition=Ready \
+  externalsecret/backend-secret \
+  externalsecret/backend-application \
+  --timeout=180s
+
+kubectl -n banco-srjm wait \
+  --for=condition=Ready ksvc/backend \
+  --timeout=600s
+```
+
+### 4. Instalar o frontend, domínio e certificado
+
+```bash
+helm upgrade --install frontend banco-srjm/banco-srjm-frontend \
+  --namespace banco-srjm \
+  --version 1.0.0 \
+  --set-string domain.host=bancosrjm.geradorqrcode-srjm.uk \
+  --set-string tls.issuerRef.name=letsencrypt-production \
+  --wait --timeout 10m
+
+kubectl -n banco-srjm wait \
+  --for=condition=Ready \
+  ksvc/frontend \
+  certificate/banco-srjm \
+  domainmapping/bancosrjm.geradorqrcode-srjm.uk \
+  --timeout=600s
+```
+
+### 5. Validar a instalação
+
+```bash
+helm list -n banco-srjm
+
+kubectl -n banco-srjm get \
+  ksvc,pods,pvc,externalsecret,certificate,domainmapping
+
+kubectl -n istio-ingress get svc istio-ingress-classic
+
+curl -I https://bancosrjm.geradorqrcode-srjm.uk/
+
+curl -fsS https://bancosrjm.geradorqrcode-srjm.uk/api/actuator/health
+```
+
+Espere as três releases como `deployed`, recursos `Ready`, PVC `Bound` e endpoint de saúde com `status: UP`.

@@ -44,7 +44,6 @@ for path in (ROOT / 'k8s').rglob('*.yaml'):
     assert path.relative_to(ROOT) in referenced, f'Manifesto fora do Kustomize: {path.name}'
 
 resources = render('k8s')
-assert render('overlays/knative') == resources, 'Alias Knative diverge da base'
 identities = [identity(resource) for resource in resources]
 assert len(identities) == len(set(identities)), 'Recursos duplicados'
 assert not any(resource['kind'] == 'Secret' for resource in resources), 'Secret estático no apply'
@@ -83,7 +82,7 @@ for name, namespace in [('vault-banco', 'banco-srjm'), ('vault-cert-manager', 'c
     assert store['provider']['vault']['version'] == 'v2'
     assert store['provider']['vault']['auth']['kubernetes']['serviceAccountRef']['audiences'] == ['vault']
 external = [r for r in resources if r['kind'] == 'ExternalSecret']
-expected = {('banco-srjm', name) for name in ('backend-secret', 'postgres-secret', 'backend-application', 'frontend-secret', 'mailpit-secret')}
+expected = {('banco-srjm', name) for name in ('backend-secret', 'postgres-secret', 'backend-application')}
 expected.add(('cert-manager', 'cloudflare-api-token-secret'))
 assert {(r['metadata']['namespace'], r['spec']['target']['name']) for r in external} == expected
 assert len(external) == len(expected)
@@ -95,7 +94,7 @@ for resource in external:
     assert spec['target']['creationPolicy'] == 'Orphan'
     assert spec['target']['deletionPolicy'] == 'Retain'
     assert spec['refreshInterval'] == '1m'
-print('OK: seis Secrets externos, isolamento dos stores e caminhos Vault')
+print('OK: quatro Secrets externos, isolamento dos stores e caminhos Vault')
 
 workloads = [r for r in resources if r['kind'] in ('StatefulSet', 'Deployment') or r['apiVersion'] == 'serving.knative.dev/v1']
 for workload in workloads:
